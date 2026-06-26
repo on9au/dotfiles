@@ -1,0 +1,14 @@
+# git aliases pulled straight from omz, no omz install needed
+ohmyzsh/ohmyzsh path:plugins/git
+
+# vi-mode early — it stomps keybindings on init
+jeffreytse/zsh-vi-mode
+
+# fzf-tab before autosuggestions/highlighting
+Aloxaf/fzf-tab
+
+zsh-users/zsh-autosuggestions
+zsh-users/zsh-history-substring-search
+
+# MUST be last
+zsh-users/zsh-syntax-highlighting

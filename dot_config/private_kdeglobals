@@ -124,7 +124,7 @@ Theme=YAMIS
 LookAndFeelPackage=my theme yeah
 contrast=5
 frameContrast=0.2
-widgetStyle=kvantum
+widgetStyle=kvantum-dark
 
 [KFileDialog Settings]
 Allow Expansion=false

@@ -21,6 +21,10 @@ tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"wi
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
+[Tiling][3381518a-34c3-4db2-9c2d-4be3e04f28e2][ed7990c6-0421-4046-a486-7e9a99424a55]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
 [Tiling][957b882e-bc19-4b20-8705-a562214618dd][bc2da465-43bc-46ab-8398-cdfbf7daf360]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
@@ -45,8 +49,11 @@ tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"wi
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
+[Wayland]
+InputMethod[$e]=/usr/share/applications/org.fcitx.Fcitx5.desktop
+
 [Xwayland]
-Scale=1
+Scale=1.5
 
 [org.kde.kdecoration2]
 library=org.kde.kwin.aurorae.v2

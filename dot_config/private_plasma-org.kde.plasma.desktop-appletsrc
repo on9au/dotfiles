@@ -6,6 +6,8 @@ RightButton;NoModifier=org.kde.contextmenu
 
 [Containments][139]
 ItemGeometries-1920x1080=
+ItemGeometries-2560x1440=
+ItemGeometries-2648x1490=
 ItemGeometriesHorizontal=
 activityId=e75f22ac-d553-4150-a138-738c4678d6e6
 formfactor=0
@@ -20,7 +22,7 @@ DialogHeight=630
 DialogWidth=810
 
 [Containments][139][Wallpaper][org.kde.image][General]
-Image=file:///home/djpro/.cache/superpaper/temp/example-b-crop-0.png
+Image=file:///home/djpro/Pictures/Wallpapers/wallhaven-8o3jrk.jpg
 SlidePaths=/usr/share/wallpapers/
 
 [Containments][140]
@@ -42,7 +44,7 @@ DialogWidth=984
 locked=true
 
 [Containments][140][Wallpaper][org.kde.image][General]
-Image=file:///home/djpro/.cache/superpaper/temp/example-b-crop-1.png
+Image=file:///home/djpro/Pictures/Wallpapers/wallhaven-8o3jrk.jpg
 SlidePaths=/usr/share/wallpapers/
 
 [Containments][140][Wallpaper][org.kde.tiled][General]
@@ -155,13 +157,17 @@ plugin=org.kde.plasma.diskquota
 immutability=1
 plugin=org.kde.plasma.trash
 
+[Containments][57][Applets][119][Applets][143]
+immutability=1
+plugin=org.kde.plasma.bluetooth
+
 [Containments][57][Applets][119][ConfigDialog]
 DialogHeight=630
 DialogWidth=810
 
 [Containments][57][Applets][119][General]
 extraItems=org.kde.plasma.addons.katesessions,org.kde.plasma.volume,org.kde.plasma.bluetooth,org.kde.plasma.brightness,org.kde.plasma.cameraindicator,org.kde.plasma.devicenotifier,org.kde.kscreen,org.kde.kdeconnect,org.kde.plasma.keyboardlayout,org.kde.plasma.networkmanagement,org.kde.plasma.battery,org.kde.plasma.clipboard,org.kde.plasma.manage-inputmethod,org.kde.plasma.diskquota,org.kde.plasma.mediacontroller,org.kde.plasma.notifications,org.kde.plasma.trash,org.kde.plasma.weather,org.kde.plasma.printmanager
-hiddenItems=chrome_status_icon_1,org.kde.plasma.addons.katesessions,firewall-applet,spotify-client,org.kde.plasma.volume,org.kde.plasma.bluetooth,org.kde.plasma.brightness,org.kde.plasma.cameraindicator,org.kde.plasma.devicenotifier,org.kde.kscreen,org.kde.kdeconnect,org.kde.plasma.keyboardlayout,org.kde.plasma.networkmanagement,org.kde.plasma.battery,org.kde.plasma.clipboard,org.kde.plasma.manage-inputmethod,org.kde.plasma.diskquota,org.kde.plasma.mediacontroller,org.kde.plasma.notifications,org.kde.plasma.trash,org.kde.plasma.weather,org.kde.plasma.printmanager,steam
+hiddenItems=chrome_status_icon_1,org.kde.plasma.addons.katesessions,firewall-applet,spotify-client,org.kde.plasma.volume,org.kde.plasma.bluetooth,org.kde.plasma.brightness,org.kde.plasma.cameraindicator,org.kde.plasma.devicenotifier,org.kde.kscreen,org.kde.kdeconnect,org.kde.plasma.keyboardlayout,org.kde.plasma.networkmanagement,org.kde.plasma.battery,org.kde.plasma.clipboard,org.kde.plasma.manage-inputmethod,org.kde.plasma.diskquota,org.kde.plasma.mediacontroller,org.kde.plasma.notifications,org.kde.plasma.trash,org.kde.plasma.weather,org.kde.plasma.printmanager,steam,Fcitx,chrome_status_icon_1@Discord,chrome_status_icon_1@lunarclient
 iconSpacing=1
 knownItems=org.kde.kdeconnect,org.kde.plasma.weather,org.kde.plasma.cameraindicator,org.kde.plasma.bluetooth,org.kde.plasma.keyboardindicator,org.kde.plasma.printmanager,org.kde.plasma.networkmanagement,org.kde.plasma.manage-inputmethod,org.kde.plasma.keyboardlayout,org.kde.plasma.brightness,org.kde.plasma.clipboard,org.kde.plasma.volume,org.kde.kscreen,org.kde.plasma.mediacontroller,org.kde.plasma.devicenotifier,org.kde.plasma.battery,org.kde.plasma.notifications
 shownItems=xdg-desktop-portal-kde
@@ -190,6 +196,8 @@ DialogWidth=810
 enableThresholdColors=true
 fontFamily=FiraCode Nerd Font Ret
 fontSize=12
+mergeBatPwr=true
+mergeCpuTemp=true
 
 [Containments][57][Applets][59]
 immutability=1
@@ -233,7 +241,7 @@ DialogWidth=810
 
 [Containments][57][Applets][84][Configuration][General]
 iconSpacing=3
-launchers=preferred://filemanager,applications:firefox.desktop,applications:kitty.desktop,applications:discord.desktop,applications:Cinny.desktop,applications:spotify.desktop
+launchers=preferred://filemanager,applications:firefox.desktop,applications:kitty.desktop,applications:discord.desktop,applications:Cinny.desktop,applications:spotify-launcher.desktop
 
 [Containments][57][General]
 AppletOrder=119;84;61;62;59;58;142
