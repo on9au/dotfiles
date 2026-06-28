@@ -58,6 +58,12 @@ case ":$PATH:" in
 esac
 # pnpm end
 
+# tmux by default
+if [ -z "$TMUX" ] && [ "$TERM_PROGRAM" = "kitty" ]; then
+    tmux attach || tmux
+fi
+
+# editor
 if command -v nvim >/dev/null 2>&1; then
     export EDITOR='nvim'
 else
