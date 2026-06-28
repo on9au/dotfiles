@@ -58,7 +58,12 @@ case ":$PATH:" in
 esac
 # pnpm end
 
-export EDITOR="vim"
+if command -v nvim >/dev/null 2>&1; then
+    export EDITOR='nvim'
+else
+    export EDITOR='vim'
+fi
+export VISUAL="$EDITOR"
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
