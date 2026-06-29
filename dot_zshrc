@@ -36,7 +36,6 @@ zvm_after_init() {
 
 GPG_TTY=$(tty)
 
-alias s="kitten ssh"
 alias vencord='sh -c "$(curl -sS https://vencord.dev/install.sh)"'
 
 export CDGIT_ROOT="/home/djpro/Projects"
