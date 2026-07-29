@@ -1,1 +1,5 @@
 .config/nvim/.git
+
+# KDE rewrites this constantly and it holds machine-specific state (Xwayland
+# Scale, per-output Tiling UUIDs), so it drifted on every `chezmoi status`.
+.config/kwinrc
