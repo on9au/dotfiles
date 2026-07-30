@@ -40,6 +40,9 @@ alias vencord='sh -c "$(curl -sS https://vencord.dev/install.sh)"'
 
 export CDGIT_ROOT="/home/djpro/Projects"
 
+# allow `#` to be used in shell
+setopt interactive_comments
+
 # fnm
 FNM_PATH="/home/djpro/.local/share/fnm"
 if [ -d "$FNM_PATH" ]; then
