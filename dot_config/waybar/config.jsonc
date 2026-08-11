@@ -22,21 +22,22 @@
         "custom/notification"
     ],
 
-    // Clicking a number switches to it -- that is built into this module, so
-    // there is deliberately no "on-click" here. Setting one (e.g. the
-    // "activate" value the sway module uses) replaces the built-in handler
-    // with a shell command and stops clicking from working at all.
-    //
     // All ten always show because rules.lua marks them persistent.
+    //
+    // Clicking a number does NOT work, and cannot be fixed from here: waybar
+    // has `dispatch workspace name:<n>` compiled in, but this setup uses a Lua
+    // Hyprland config, so hyprctl evaluates dispatch arguments as Lua and the
+    // old syntax is a parse error. Scrolling works because those commands are
+    // ours to write in the Lua form. See the README.
     "hyprland/workspaces": {
         "format": "{name}",
         // Scroll over the workspace list to move through them.
-        "on-scroll-up": "hyprctl dispatch workspace e+1",
-        "on-scroll-down": "hyprctl dispatch workspace e-1"
+        "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus({workspace = \"e+1\"})'",
+        "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({workspace = \"e-1\"})'"
     },
 
     "hyprland/submap": {
-        "format": " {}",
+        "format": "󰌌 {}",
         "tooltip": false
     },
 
@@ -95,7 +96,7 @@
         "critical-threshold": 85,
         "format": "{icon} {temperatureC}°C",
         "format-critical": "󰸁 {temperatureC}°C",
-        "format-icons": ["", "", ""],
+        "format-icons": ["󰔑", "󰔏", "󰔐"],
         "interval": 5
     },
 
@@ -116,7 +117,7 @@
     // tailscale, so waybar picks whichever is actually carrying traffic.
     "network": {
         "format-ethernet": "󰈀 {bandwidthDownBits}",
-        "format-wifi": "  {signalStrength}%",
+        "format-wifi": "󰖩  {signalStrength}%",
         "format-linked": "󰈀 no IP",
         "format-disconnected": "󰖪 offline",
         "tooltip-format": "{ifname}  {ipaddr}/{cidr}",
