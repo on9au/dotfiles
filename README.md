@@ -117,18 +117,20 @@ hyprctl dispatch workspace 3                    # error: ')' expected near '3'
 hyprctl dispatch 'hl.dsp.focus({workspace = 3})' # ok
 ```
 
-This is not cosmetic. Waybar has `dispatch workspace name:<n>` compiled into
-the binary, so clicking a workspace number silently did nothing and no amount
-of waybar config could fix it.
+This is not cosmetic, and it has a known casualty: **clicking a workspace
+number in waybar does nothing.** Waybar has `dispatch workspace name:<n>`
+compiled into the binary, so no amount of waybar config can fix it. Switch
+workspaces with `SUPER`+`1`–`0`, or by scrolling over the bar — those are
+written in the Lua form and work.
 
-`~/.local/bin/hyprctl` is a shim that translates the old syntax. It runs the
-real binary first and only rewrites when that comes back with the Lua parse
-error, so it is a no-op for calls that already work — including if a future
-Hyprland accepts the old syntax again. It is only on PATH for the graphical
-session (via `uwsm/env`), so a terminal still gets `/usr/bin/hyprctl`.
+A `~/.local/bin/hyprctl` shim translating the old syntax was tried and
+deliberately removed: shadowing a system binary for the whole graphical
+session is a worse long-term problem than losing one click target.
 
-If a tool still does nothing when it should dispatch something, check whether
-its dispatcher is in the shim's translation table and add it.
+The same applies to anything else that shells out to `hyprctl dispatch`. If a
+tool or a snippet from the wiki appears to do nothing, run its command by hand
+— a Lua parse error is the giveaway, and the fix is to rewrite it as
+`hl.dsp.*`. The dispatcher names are in `/usr/share/hypr/stubs/hl.meta.lua`.
 
 ### Icons
 
