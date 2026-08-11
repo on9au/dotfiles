@@ -8,6 +8,16 @@
 #
 # Shell syntax. Applied at login -- edits need a re-login to take effect.
 
+# ---- PATH ----
+#
+# Puts ~/.local/bin ahead of /usr/bin for the graphical session, which is what
+# lets the hyprctl compatibility shim there be found by apps like waybar.
+# See ~/.local/bin/hyprctl for why that shim exists.
+#
+# Deliberately session-only: a terminal still gets the real /usr/bin/hyprctl,
+# so there is exactly one place where the substitution is in play.
+export PATH="$HOME/.local/bin:$PATH"
+
 # ---- Qt / KDE app theming ----
 #
 # Dolphin, Gwenview, Okular and friends read their colours, icon theme and

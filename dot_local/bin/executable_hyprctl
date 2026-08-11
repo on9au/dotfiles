@@ -1,0 +1,122 @@
+#!/bin/sh
+# ~/.local/bin/hyprctl -- compatibility shim for the Lua Hyprland config.
+#
+# WHY THIS EXISTS
+#
+# This setup uses a Lua hyprland.lua rather than hyprland.conf. When the config
+# is Lua, `hyprctl dispatch` evaluates its argument as Lua, so the classic
+# syntax every third-party tool emits is a parse error:
+#
+#   $ hyprctl dispatch workspace 3
+#   error: [string "return hl.dispatch(workspace 3)"]:1: ')' expected near '3'
+#
+# Waybar has `dispatch workspace name:<n>` compiled into the binary, so
+# clicking a workspace number silently did nothing. It cannot be fixed from
+# waybar's config. This translates the old syntax into the Lua form.
+#
+# HOW IT STAYS SAFE
+#
+# It is a pass-through in every case except the one it exists for:
+#
+#   * anything that is not a `dispatch` goes straight to the real binary
+#   * `dispatch` is FIRST run against the real binary unmodified; the
+#     translation only happens if that came back with the Lua parse error
+#   * an unrecognised dispatcher returns the original error untouched
+#
+# So if a future Hyprland accepts the classic syntax again, this quietly stops
+# doing anything rather than becoming a second thing to debug. Nothing is
+# silently rewritten on a call that already worked.
+#
+# It is only on PATH for the graphical session (set in ~/.config/uwsm/env), so
+# `hyprctl` in a terminal is still the real one at /usr/bin/hyprctl.
+
+set -u
+
+REAL=/usr/bin/hyprctl
+
+# Anything that is not a dispatch: hand over untouched.
+is_dispatch=0
+for arg in "$@"; do
+    if [ "$arg" = "dispatch" ]; then
+        is_dispatch=1
+        break
+    fi
+done
+
+[ "$is_dispatch" -eq 1 ] || exec "$REAL" "$@"
+
+# Try it for real first. If Hyprland is happy, we are done.
+out=$("$REAL" "$@" 2>&1)
+st=$?
+
+case "$out" in
+*'hl.dispatch('* | *'syntax might need to be updated'*)
+    : # the failure this shim is for -- fall through and translate
+    ;;
+*)
+    [ -n "$out" ] && printf '%s\n' "$out"
+    exit "$st"
+    ;;
+esac
+
+# Everything after the literal "dispatch" argument, rejoined. Handles both
+# `dispatch workspace 3` and `dispatch "workspace 3"`.
+classic=""
+found=0
+for arg in "$@"; do
+    if [ "$found" -eq 1 ]; then
+        classic="${classic:+$classic }$arg"
+    elif [ "$arg" = "dispatch" ]; then
+        found=1
+    fi
+done
+
+dispatcher=${classic%% *}
+rest=${classic#"$dispatcher"}
+rest=${rest# }
+
+# Render a dispatcher argument as a Lua value: bare number where it is one,
+# quoted string otherwise. `name:foo` means "the workspace called foo".
+luaval() {
+    case "$1" in
+    name:*) printf '"%s"' "${1#name:}" ;;
+    '') printf '""' ;;
+    *[!0-9]*) printf '"%s"' "$1" ;;
+    *) printf '%s' "$1" ;;
+    esac
+}
+
+case "$dispatcher" in
+workspace)
+    lua="hl.dsp.focus({workspace = $(luaval "$rest")})"
+    ;;
+movetoworkspace)
+    lua="hl.dsp.window.move({workspace = $(luaval "$rest")})"
+    ;;
+movetoworkspacesilent)
+    lua="hl.dsp.window.move({workspace = $(luaval "$rest"), silent = true})"
+    ;;
+focuswindow)
+    lua="hl.dsp.focus({window = [[$rest]]})"
+    ;;
+killactive)
+    lua="hl.dsp.window.close()"
+    ;;
+togglefloating)
+    lua="hl.dsp.window.float({action = \"toggle\"})"
+    ;;
+fullscreen)
+    lua="hl.dsp.window.fullscreen({mode = \"fullscreen\"})"
+    ;;
+exec)
+    # Long-bracket string so shell quoting in the command survives as-is.
+    lua="hl.dsp.exec_cmd([[$rest]])"
+    ;;
+*)
+    # Not translated: hand back the real error rather than inventing one.
+    [ -n "$out" ] && printf '%s\n' "$out"
+    exit "$st"
+    ;;
+esac
+
+exec "$REAL" dispatch "$lua"

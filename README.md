@@ -106,6 +106,52 @@ These follow i3/sway convention, which is **not** what Hyprland ships:
 upstream puts the terminal on `SUPER`+`Q` and close on `SUPER`+`C`. Lock is on
 `Escape` rather than the usual `SUPER`+`L` because `L` is taken by hjkl focus.
 
+### The Lua config gotcha
+
+Worth knowing before debugging anything that talks to Hyprland: because the
+config is Lua, **`hyprctl dispatch` evaluates its argument as Lua**, and the
+classic syntax that every guide and third-party tool uses is a parse error.
+
+```bash
+hyprctl dispatch workspace 3                    # error: ')' expected near '3'
+hyprctl dispatch 'hl.dsp.focus({workspace = 3})' # ok
+```
+
+This is not cosmetic. Waybar has `dispatch workspace name:<n>` compiled into
+the binary, so clicking a workspace number silently did nothing and no amount
+of waybar config could fix it.
+
+`~/.local/bin/hyprctl` is a shim that translates the old syntax. It runs the
+real binary first and only rewrites when that comes back with the Lua parse
+error, so it is a no-op for calls that already work — including if a future
+Hyprland accepts the old syntax again. It is only on PATH for the graphical
+session (via `uwsm/env`), so a terminal still gets `/usr/bin/hyprctl`.
+
+If a tool still does nothing when it should dispatch something, check whether
+its dispatcher is in the shim's translation table and add it.
+
+### Icons
+
+Use only **Plane-15** Nerd Font glyphs (U+F0000 and above, the Material Design
+range). Icons from the Basic Multilingual Plane private use area
+(U+E000–U+F8FF) do not survive being written into these files and silently
+become empty strings — which is what emptied the power menu, thermometer, wifi
+and launcher-prompt icons.
+
+The installed FiraCode Nerd Font covers `f000-f381` and `f0001-f1af0`; check
+before picking a glyph:
+
+```bash
+fc-query --format='%{charset}\n' /usr/local/share/fonts/f/FiraCodeNerdFont_Regular.ttf
+```
+
+### Tray
+
+waybar's tray has no per-item ignore list, so unwanted indicators are turned
+off at the source. fcitx5's is its `notificationitem` addon, disabled in
+`fcitx5/addon/notificationitem.conf` — input switching still works, only the
+icon is gone.
+
 ### Session management
 
 `SUPER`+`Shift`+`M` opens `~/.local/bin/powermenu`, a fuzzel menu with lock /
