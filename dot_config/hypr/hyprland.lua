@@ -10,6 +10,7 @@
 --   apps.lua       which terminal / browser / launcher to use
 --   monitors.lua   per-output resolution, refresh rate and scaling
 --   env.lua        environment variables for Wayland toolkits and the cursor
+--   xwayland.lua   how X11 apps are scaled
 --   looknfeel.lua  gaps, borders, rounding, blur, animations
 --   input.lua      keyboard and mouse
 --   binds.lua      keybindings
@@ -27,6 +28,7 @@
 
 require("monitors")
 require("env")
+require("xwayland")
 require("looknfeel")
 require("input")
 require("binds")

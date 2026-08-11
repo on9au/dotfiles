@@ -99,12 +99,56 @@ the Dell.
 | `SUPER` + `Shift` + `V` | clipboard history |
 | `SUPER` + `N` | notification centre |
 | `SUPER` + `Escape` | lock |
-| `SUPER` + `Shift` + `M` | exit Hyprland |
+| `SUPER` + `Shift` + `M` | power menu (lock / log out / suspend / reboot / shut down) |
 | `Print` / `Shift`+`Print` / `Alt`+`Print` | screenshot region / monitor / window |
 
 These follow i3/sway convention, which is **not** what Hyprland ships:
 upstream puts the terminal on `SUPER`+`Q` and close on `SUPER`+`C`. Lock is on
 `Escape` rather than the usual `SUPER`+`L` because `L` is taken by hjkl focus.
+
+### Session management
+
+`SUPER`+`Shift`+`M` opens `~/.local/bin/powermenu`, a fuzzel menu with lock /
+log out / suspend / reboot / shut down. fuzzel rather than wlogout so it
+inherits the same theme and there is one less package to configure.
+
+Log out runs **`uwsm stop`**, not `hyprctl dispatch exit`. The session is a
+systemd unit under uwsm, so killing just the compositor leaves the rest of the
+user session units running.
+
+### HiDPI and XWayland
+
+Wayland-native apps handle the 1.25/1.5 scaling themselves. X11 apps cannot, so
+`hypr/xwayland.lua` sets `force_zero_scaling`: they get the real 3840x2160 and
+render sharp, instead of drawing at logical size and being upscaled into a
+blurry mess.
+
+The catch is that an X11 app then draws at 1:1 and looks small unless it scales
+itself, so those need handling one at a time — Steam via
+`STEAM_FORCE_DESKTOPUI_SCALING` in `uwsm/env`.
+
+The better fix is always to get the app off XWayland entirely. Spotify was the
+easy win: `spotify-launcher.conf` passes it Ozone flags so it runs native
+Wayland. To see what is still on X11:
+
+```bash
+hyprctl clients -j | jq -r '.[] | select(.xwayland) | .class'
+```
+
+### Qt apps outside Plasma
+
+`QT_QPA_PLATFORMTHEME=kde` in `uwsm/env` is what makes Dolphin, Gwenview and
+Okular read their colours, icons and fonts from `kdeglobals`. Without it they
+fall back to unstyled Qt. The plugin comes from `plasma-integration`.
+
+File associations live in `mimeapps.list` (tracked). Images had no entry at
+all, so they fell through to whatever the system mimeinfo cache picked —
+Brave — which is what produced the broken "open with" prompt. They are pinned
+to Gwenview now:
+
+```bash
+xdg-mime query default image/png
+```
 
 ### Input method (fcitx5)
 

@@ -8,7 +8,29 @@
 #
 # Shell syntax. Applied at login -- edits need a re-login to take effect.
 
+# ---- Qt / KDE app theming ----
+#
+# Dolphin, Gwenview, Okular and friends read their colours, icon theme and
+# fonts from kdeglobals via KDE's Qt platform theme plugin. Outside a Plasma
+# session nothing sets this, so they fall back to raw unstyled Qt -- which is
+# what "Dolphin theming is broken" looks like.
+#
+# Provided by the plasma-integration package. Configure the values themselves
+# with `systemsettings` as usual; they still live in kdeglobals.
+export QT_QPA_PLATFORMTHEME=kde
+
+# ---- Steam ----
+#
+# Steam is X11-only and has no Wayland backend. With
+# xwayland.force_zero_scaling (see hypr/xwayland.lua) it renders at native 4K
+# and stays sharp, but draws its UI at 1:1 and so comes out small -- this tells
+# it to scale itself, matching the 1.25 scale of the primary monitor.
+export STEAM_FORCE_DESKTOPUI_SCALING=1.25
+
 # ---- Input method (fcitx5, with mozc + pinyin) ----
+#
+# Note: /etc/environment already exports QT_IM_MODULE=fcitx system-wide, which
+# is why it shows up in the session despite not being set here.
 #
 # Hyprland implements text-input-v3, so Wayland-native GTK and Qt apps talk to
 # fcitx5 through the compositor and need no *_IM_MODULE variables. Setting

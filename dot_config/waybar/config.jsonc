@@ -22,9 +22,14 @@
         "custom/notification"
     ],
 
+    // Clicking a number switches to it -- that is built into this module, so
+    // there is deliberately no "on-click" here. Setting one (e.g. the
+    // "activate" value the sway module uses) replaces the built-in handler
+    // with a shell command and stops clicking from working at all.
+    //
+    // All ten always show because rules.lua marks them persistent.
     "hyprland/workspaces": {
         "format": "{name}",
-        "on-click": "activate",
         // Scroll over the workspace list to move through them.
         "on-scroll-up": "hyprctl dispatch workspace e+1",
         "on-scroll-down": "hyprctl dispatch workspace e-1"

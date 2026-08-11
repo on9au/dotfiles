@@ -51,9 +51,16 @@ hl.bind(mod .. " + N", hl.dsp.exec_cmd("swaync-client -t -sw"), { desc = "notifi
 -- window focus below.
 hl.bind(mod .. " + Escape", hl.dsp.exec_cmd("loginctl lock-session"), { desc = "lock screen" })
 
--- Deliberately on SHIFT: Hyprland's default of a bare SUPER + M to quit the
--- session sits one key away from the lock bind.
-hl.bind(mod .. " + SHIFT + M", hl.dsp.exit(), { desc = "exit Hyprland" })
+-- Power menu: lock / log out / suspend / reboot / shut down.
+--
+-- Not a bare exit dispatcher: under uwsm the session is a systemd unit, and
+-- quitting the compositor directly leaves the rest of the user session units
+-- running. The script uses `uwsm stop` for that reason.
+--
+-- Absolute path because ~/.local/bin is not on PATH here.
+hl.bind(mod .. " + SHIFT + M",
+    hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/bin/powermenu"),
+    { desc = "power menu" })
 
 -------------------
 ---- WINDOWS   ----
