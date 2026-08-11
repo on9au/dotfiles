@@ -1,0 +1,34 @@
+-- ~/.config/hypr/hyprland.lua -- Hyprland entry point.
+--
+-- Managed by chezmoi. Edit the source, not this file:
+--   chezmoi edit ~/.config/hypr/hyprland.lua
+--
+-- This file only wires the modules together; the actual settings live in the
+-- files listed below, all in this same directory.
+--
+--   colors.lua     Catppuccin Mocha palette, shared by the other modules
+--   apps.lua       which terminal / browser / launcher to use
+--   monitors.lua   per-output resolution, refresh rate and scaling
+--   env.lua        environment variables for Wayland toolkits and the cursor
+--   looknfeel.lua  gaps, borders, rounding, blur, animations
+--   input.lua      keyboard and mouse
+--   binds.lua      keybindings
+--   rules.lua      window and workspace rules
+--   autostart.lua  processes started with the session
+--
+-- Reference:
+--   Wiki      https://wiki.hypr.land/
+--   Lua API   /usr/share/hypr/stubs/hl.meta.lua   (authoritative, versioned
+--                                                  with the installed compositor)
+--   Defaults  /usr/share/hypr/hyprland.lua
+--
+-- After editing, check for mistakes without logging out:
+--   Hyprland --verify-config
+
+require("monitors")
+require("env")
+require("looknfeel")
+require("input")
+require("binds")
+require("rules")
+require("autostart")

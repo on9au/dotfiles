@@ -1,0 +1,30 @@
+# Sourced by uwsm into the graphical session environment, before the
+# compositor and before anything XDG-autostarted.
+#
+# This is the right place for input-method variables rather than hl.env() in
+# hypr/env.lua: hl.env only reaches processes Hyprland itself spawns, and
+# fcitx5 is started by systemd via XDG autostart
+# (/etc/xdg/autostart/org.fcitx.Fcitx5.desktop), not by the compositor.
+#
+# Shell syntax. Applied at login -- edits need a re-login to take effect.
+
+# ---- Input method (fcitx5, with mozc + pinyin) ----
+#
+# Hyprland implements text-input-v3, so Wayland-native GTK and Qt apps talk to
+# fcitx5 through the compositor and need no *_IM_MODULE variables. Setting
+# GTK_IM_MODULE/QT_IM_MODULE here would force the older module path and is a
+# common cause of doubled or dead-key input on Wayland.
+#
+# XWayland apps have no such protocol, so they still need XMODIFIERS.
+export XMODIFIERS=@im=fcitx
+
+# SDL and GLFW games/apps do their own thing; both want to be told explicitly.
+# GLFW speaks the ibus protocol, which fcitx5 also implements.
+export SDL_IM_MODULE=fcitx
+export GLFW_IM_MODULE=ibus
+
+# If some specific XWayland GTK or Qt app refuses to compose, uncomment the
+# matching line below -- but expect Wayland-native apps to get worse, not
+# better, so prefer fixing it per-app:
+# export GTK_IM_MODULE=fcitx
+# export QT_IM_MODULE=fcitx
