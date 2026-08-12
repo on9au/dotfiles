@@ -31,7 +31,7 @@ Config lives in `/etc`, which chezmoi does not manage, so the copies in
 
 ```bash
 # installs packages, copies the assets the greeter can read, and drops
-# config.toml / regreet.toml / hyprland.conf into /etc/greetd.
+# config.toml / regreet.toml / hyprland.lua into /etc/greetd.
 # Safe to re-run; refuses to continue if the greeter config fails to parse.
 sudo sh system/greetd/install.sh
 
