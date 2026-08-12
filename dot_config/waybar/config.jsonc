@@ -19,6 +19,7 @@
   ],
   "modules-right": [
     "tray",
+    "custom/fcitx5_layout",
     "cpu",
     "memory",
     "temperature",
@@ -134,6 +135,13 @@
   "tray": {
     "icon-size": 18,
     "spacing": 10
+  },
+  "custom/fcitx5_layout": {
+    "exec": "~/.config/waybar/scripts/fcitx5-layout.sh",
+    "interval": 1,
+    "format": "  {}",
+    "on-click": "fcitx5-remote -o",
+    "tooltip": false
   },
   "custom/notification": {
     "tooltip": false,

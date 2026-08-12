@@ -1,0 +1,11 @@
+#!/bin/bash
+# Get the active fcitx5 input method name
+layout=$(fcitx5-remote -n)
+
+# Format the output for Waybar (Shorten long names if necessary)
+case "$layout" in
+"keyboard-us") echo "US" ;;
+"pinyin") echo "CN" ;;
+"mozc") echo "JP" ;;
+*) echo "$layout" ;;
+esac
