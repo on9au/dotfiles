@@ -4,17 +4,20 @@
 # this repo is the source of truth; see the README for the install command.
 #
 # ReGreet is a GTK application, so it needs a Wayland compositor to draw in.
-# cage is a kiosk compositor that runs exactly one app fullscreen, which is
-# what that command does.
+# That used to be cage, but cage cannot describe monitors -- it only extends
+# across every output, which on this dual-4K setup put the prompt across the
+# bezel seam and stretched the background over both screens. Hyprland is used
+# instead so the greeter gets the same modes, scales and positions as the
+# session. See hyprland.conf.
 
 [terminal]
 # The VT the greeter takes over. 1 is the one you land on at boot.
 vt = 1
 
 [default_session]
-# -s allows switching away to another VT, which is the escape hatch if the
-# greeter ever fails to come up: Ctrl+Alt+F2 still gets you a text login.
-command = "cage -s -- regreet"
+# Hyprland exits as soon as regreet does; see exec-once in hyprland.conf.
+# Ctrl+Alt+F2 remains the escape hatch to a text login if this ever fails.
+command = "Hyprland --config /etc/greetd/hyprland.conf"
 
 # Unprivileged user the greeter runs as, created by the greetd package. This
 # is why the greeter cannot read anything under /home/djpro -- wallpaper,

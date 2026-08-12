@@ -22,7 +22,7 @@ are what the waybar audio/network modules open on click.
 ### Login manager (greetd + ReGreet)
 
 ```bash
-sudo pacman -S greetd greetd-regreet cage
+sudo pacman -S greetd greetd-regreet
 ```
 
 Config lives in `/etc`, which chezmoi does not manage, so the copies in
@@ -36,8 +36,20 @@ sudo systemctl disable sddm.service
 sudo systemctl enable greetd.service
 ```
 
-ReGreet is a GTK app, so it needs a compositor: greetd runs it inside **cage**,
-a kiosk compositor that shows one fullscreen app.
+ReGreet is a GTK app, so it needs a compositor. greetd runs it inside
+**Hyprland**, using `system/greetd/hyprland.conf`.
+
+Not cage: cage cannot describe monitors. It either extends across every output
+(the default) or uses whichever connected last. Extending builds one ~7680px
+output space across both 4K panels, so the prompt lands across the bezel seam
+and the background is stretched over both screens. Hyprland gives the greeter
+the same modes, scales and positions as the session — **keep those monitor
+lines in sync with `hypr/monitors.lua`.**
+
+That greeter config is hyprlang, not Lua, on purpose: it is throwaway config
+for one program, and hyprlang keeps `hyprctl dispatch exit` working with the
+classic syntax (see the Lua gotcha above). `exec-once = regreet; hyprctl
+dispatch exit` tears the compositor down the moment the greeter finishes.
 
 **The greeter runs as the `greeter` user and cannot read `/home/djpro`** (mode
 `700`). Anything it references has to be world-readable, so these are copied

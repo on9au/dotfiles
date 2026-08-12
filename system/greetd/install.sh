@@ -16,7 +16,9 @@ USER_HOME=$(getent passwd "$USER_NAME" | cut -d: -f6)
 REPO="$USER_HOME/.local/share/chezmoi/system/greetd"
 
 echo "==> installing packages"
-pacman -S --needed --noconfirm greetd greetd-regreet cage
+# cage is no longer used (it cannot describe monitors, so the greeter spanned
+# both 4K panels); Hyprland hosts the greeter instead and is already installed.
+pacman -S --needed --noconfirm greetd greetd-regreet
 
 # The greeter runs as the unprivileged `greeter` user and cannot read
 # $USER_HOME (mode 700), so everything it references is copied somewhere
@@ -37,6 +39,13 @@ done
 echo "==> installing configs"
 install -Dm644 "$REPO/config.toml" /etc/greetd/config.toml
 install -Dm644 "$REPO/regreet.toml" /etc/greetd/regreet.toml
+install -Dm644 "$REPO/hyprland.conf" /etc/greetd/hyprland.conf
+
+# Sanity-check the greeter compositor config before it becomes the only way in.
+if ! Hyprland --verify-config -c /etc/greetd/hyprland.conf 2>&1 | grep -q 'config ok'; then
+    echo "ERROR: /etc/greetd/hyprland.conf failed to parse -- not switching." >&2
+    exit 1
+fi
 
 echo
 echo "STAGED-OK -- nothing switched over yet."
