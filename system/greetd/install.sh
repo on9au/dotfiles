@@ -42,10 +42,26 @@ install -Dm644 "$REPO/regreet.toml" /etc/greetd/regreet.toml
 install -Dm644 "$REPO/hyprland.conf" /etc/greetd/hyprland.conf
 
 # Sanity-check the greeter compositor config before it becomes the only way in.
-if ! Hyprland --verify-config -c /etc/greetd/hyprland.conf 2>&1 | grep -q 'config ok'; then
+#
+# Run as $USER_NAME, not root: Hyprland refuses to start for the root user
+# (that is what its --i-am-really-stupid flag exists to bypass), so checking it
+# under sudo always "fails" regardless of the config. The file is world
+# readable, so an unprivileged check is fine.
+if [ "$(id -u)" -eq 0 ] && command -v runuser >/dev/null 2>&1; then
+    # normal case: script was run with sudo, drop to the user to check
+    verify_cmd="runuser -u $USER_NAME -- "
+else
+    # already unprivileged (script run without sudo, e.g. re-checking by hand)
+    verify_cmd=""
+fi
+
+if ! $verify_cmd Hyprland --verify-config -c /etc/greetd/hyprland.conf 2>&1 |
+    grep -q 'config ok'; then
     echo "ERROR: /etc/greetd/hyprland.conf failed to parse -- not switching." >&2
     exit 1
 fi
+
+echo "==> greeter compositor config parses"
 
 echo
 echo "STAGED-OK -- nothing switched over yet."
