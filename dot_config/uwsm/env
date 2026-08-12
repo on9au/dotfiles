@@ -16,11 +16,15 @@
 # and cannot be dismissed into anything. Measured, not guessed --
 # `kde-open <image>` fails 3/3 with it set and succeeds 4/4 without.
 #
-# Styling instead comes from Kvantum, which is a Qt *style* rather than a
-# platform theme plugin, so it never touches KIO's dialog handling. The theme
-# itself is picked in ~/.config/Kvantum/kvantum.kvconfig (currently
-# Dream-Violet-Dark-Kvantum); change it with `kvantummanager`.
-export QT_STYLE_OVERRIDE=kvantum
+# qt6ct is a platform theme too, but not KDE's, and it was checked against the
+# same test: it opens files 3/3 where `kde` managed 0/3. It gives back the
+# things a bare Qt style cannot set -- icon theme, fonts, dialog behaviour --
+# and is configured in ~/.config/qt6ct/qt6ct.conf (GUI: `qt6ct`).
+export QT_QPA_PLATFORMTHEME=qt6ct
+
+# No QT_STYLE_OVERRIDE here on purpose: it would win over qt6ct's own style
+# setting and make the style dropdown in `qt6ct` do nothing. The widget style
+# is set inside qt6ct.conf instead (currently kvantum).
 
 # ---- Steam ----
 #

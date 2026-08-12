@@ -231,19 +231,30 @@ lists nothing. Measured with `kde-open <image>`:
 | unset | 4/4 |
 | `gtk3` | 2/2 |
 | `xdgdesktopportal` | 2/2 |
+| **`qt6ct`** (in use) | **3/3** |
 
 So it is specific to plasma-integration's plugin, not to platform themes in
-general. Styling comes from **Kvantum** instead — a Qt *style*, not a platform
-theme plugin, so it never touches KIO's dialog handling:
+general. Theming is **qt6ct**, which passes that test:
 
 ```sh
-export QT_STYLE_OVERRIDE=kvantum   # in uwsm/env
+export QT_QPA_PLATFORMTHEME=qt6ct   # in uwsm/env
 ```
 
-The theme is set in `~/.config/Kvantum/kvantum.kvconfig` via `kvantummanager`.
-For fuller control (icon theme, fonts, colour scheme) `qt6ct` is the better
-option — it is a platform theme, but not KDE's, so it should not reintroduce
-the bug. It can use Kvantum as its widget style.
+Configured in `qt6ct/qt6ct.conf` (tracked) or the `qt6ct` GUI — widget style,
+icon theme, fonts and dialog behaviour. The widget style is **Kvantum**, whose
+own theme (`Dream-Violet-Dark-Kvantum`) is set separately with
+`kvantummanager`; Kvantum supplies the colours, which is why no qt6ct colour
+scheme is applied.
+
+`QT_STYLE_OVERRIDE` is deliberately **not** set: it beats qt6ct's own style
+setting and makes the style dropdown in the GUI do nothing.
+
+Re-run the check after changing any of this — the failure mode is silent, and
+it shows up as an empty "Open With" dialog rather than an error:
+
+```bash
+kde-open ~/Pictures/Wallpapers/*.jpg   # should open Gwenview, not a dialog
+```
 
 File associations live in `mimeapps.list` (tracked). Images had no entry at
 all, so they fell through to whatever the system mimeinfo cache picked —
