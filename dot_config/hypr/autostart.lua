@@ -59,7 +59,7 @@ hl.on("hyprland.start", function()
     -- a second copy, since uwsm honours XDG autostart too.
 
     app_on(apps.terminal, 1)
-    app_on("firefox", 2)
+    app_on(apps.browser, 2)
     app_on("discord", 6)
     app_on("spotify-launcher", 7)
 
