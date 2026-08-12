@@ -56,9 +56,18 @@ sitting over the login prompt. The `hyprland.start` handler runs
 moment the greeter finishes (note the Lua dispatch form — the classic syntax
 would be a parse error here too).
 
-The prompt is pinned to the **32" AOC**. Hyprland enumerates `DP-1` first, so
-by default the greeter opened on the Dell; `cursor.default_monitor = "DP-2"`
-plus a `monitor = "DP-2"` window rule put it on the left screen.
+The prompt is pinned to the **32" AOC by disabling `DP-1` for the login
+screen** — so the Dell is dark for the few seconds the greeter is up.
+
+That is blunt on purpose. Hyprland enumerates `DP-1` first (monitor ID 0), so
+it takes focus at startup and the greeter opened there.
+`cursor.default_monitor = "DP-2"` and a `monitor = "DP-2"` window rule both
+failed to move it, and a greeter cannot be iterated on quickly — every attempt
+costs a logout. One output cannot be got wrong.
+
+To light both instead, give `DP-1` the mode/position/scale from
+`hypr/monitors.lua` in place of `disabled`, and expect to have to solve the
+focus problem.
 
 A greeter is not a session, so several of Hyprland's on-screen notices are
 turned off in `misc` — otherwise they stack up over the login prompt:

@@ -22,37 +22,26 @@ hl.monitor({
     scale    = 1.25,
 })
 
--- Dell U2725QE, 27". Enabled so it is not a dead black panel at boot, but
--- nothing is placed on it.
+-- Dell U2725QE, 27" -- switched off for the login screen.
+--
+-- This is what actually pins the prompt to the 32", and it is deliberate
+-- rather than tidy. Hyprland enumerates DP-1 first (monitor ID 0), so it takes
+-- focus at startup and the greeter opened there. Setting
+-- cursor.default_monitor and a monitor="DP-2" window rule did NOT move it, and
+-- a greeter is not something that can be iterated on quickly -- every attempt
+-- costs a logout. With one output there is nothing to get wrong.
+--
+-- The panel is dark for the few seconds the login screen is up, then comes
+-- back with the session. To have both lit instead, replace `disabled` with the
+-- mode/position/scale lines from hypr/monitors.lua -- and expect to have to
+-- solve the focus problem.
 hl.monitor({
     output   = "DP-1",
-    mode     = "3840x2160@120",
-    position = "3072x144",
-    scale    = 1.5,
+    disabled = true,
 })
 
 -- Anything else that gets plugged in.
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
-
-----------------------------
----- PROMPT PLACEMENT   ----
-----------------------------
-
--- Hyprland enumerates DP-1 first (it is monitor ID 0), so without this the
--- greeter opens on the Dell -- the right-hand screen. Two things pin it to the
--- 32": the cursor starts there, so that monitor has focus, and the window rule
--- sends the greeter there regardless.
-hl.config({
-    cursor = {
-        default_monitor = "DP-2",
-    },
-})
-
-hl.window_rule({
-    name    = "greeter-on-primary",
-    match   = { class = ".*" },
-    monitor = "DP-2",
-})
 
 --------------------
 ---- BEHAVIOUR  ----
