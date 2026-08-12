@@ -3,7 +3,7 @@
 
 return {
 	terminal = "kitty",
-	file_manager = "dolphin",
+	file_manager = "nautilus",
 	launcher = "fuzzel",
 	browser = "firefox",
 
