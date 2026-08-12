@@ -28,11 +28,13 @@
   ],
   // All ten always show because rules.lua marks them persistent.
   //
-  // Clicking a number does NOT work, and cannot be fixed from here: waybar
-  // has `dispatch workspace name:<n>` compiled in, but this setup uses a Lua
-  // Hyprland config, so hyprctl evaluates dispatch arguments as Lua and the
-  // old syntax is a parse error. Scrolling works because those commands are
-  // ours to write in the Lua form. See the README.
+  // Clicking a number needs waybar-git, not the 0.15.0 release: release
+  // builds send `dispatch workspace name:<n>`, which is a parse error under a
+  // Lua Hyprland config, so clicks silently did nothing. Upstream now emits
+  // `hl.dsp.focus({ workspace = "..." })`. See the README.
+  //
+  // Still no "on-click" here on purpose -- setting one replaces waybar's own
+  // click handler with a shell command and breaks clicking again.
   "hyprland/workspaces": {
     "format": "{name}",
     // Scroll over the workspace list to move through them.

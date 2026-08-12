@@ -9,7 +9,11 @@ managed with chezmoi :3
 current packages used are:
 
 ```bash
-sudo pacman -S hyprland uwsm xdg-desktop-portal-hyprland waybar fuzzel swaync hyprlock hypridle hyprpolkitagent awww hyprshot cliphist wl-clipboard qt5-wayland qt6-wayland playerctl pavucontrol networkmanager
+sudo pacman -S hyprland uwsm xdg-desktop-portal-hyprland xdg-desktop-portal-kde plasma-integration fuzzel swaync hyprlock hypridle hyprpolkitagent awww hyprshot cliphist wl-clipboard qt5-wayland qt6-wayland playerctl pavucontrol networkmanager
+
+# waybar from the AUR, not the repos -- see "The Lua config gotcha" below.
+# The release build cannot switch workspaces on click with a Lua config.
+paru -S waybar-git
 ```
 
 `playerctl` drives the media keys, `pavucontrol` and `networkmanager` (nmtui)
@@ -117,20 +121,23 @@ hyprctl dispatch workspace 3                    # error: ')' expected near '3'
 hyprctl dispatch 'hl.dsp.focus({workspace = 3})' # ok
 ```
 
-This is not cosmetic, and it has a known casualty: **clicking a workspace
-number in waybar does nothing.** Waybar has `dispatch workspace name:<n>`
-compiled into the binary, so no amount of waybar config can fix it. Switch
-workspaces with `SUPER`+`1`–`0`, or by scrolling over the bar — those are
-written in the Lua form and work.
+This bites any program that shells out to `hyprctl dispatch` with the old
+syntax, and it is why **waybar-git is used instead of the `waybar` release**.
+Release builds send `dispatch workspace name:<n>` when you click a workspace,
+which is a parse error here, so clicking did nothing at all. Upstream has since
+switched to emitting `hl.dsp.focus({ workspace = "..." })`, so on waybar-git it
+works. Downgrading to the release build silently loses workspace clicking
+again.
 
 A `~/.local/bin/hyprctl` shim translating the old syntax was tried and
-deliberately removed: shadowing a system binary for the whole graphical
-session is a worse long-term problem than losing one click target.
+deliberately removed — shadowing a system binary for the whole graphical
+session was a worse problem than the one it solved. Upstream fixing it was the
+better outcome.
 
-The same applies to anything else that shells out to `hyprctl dispatch`. If a
-tool or a snippet from the wiki appears to do nothing, run its command by hand
-— a Lua parse error is the giveaway, and the fix is to rewrite it as
-`hl.dsp.*`. The dispatcher names are in `/usr/share/hypr/stubs/hl.meta.lua`.
+If some other tool or a snippet from the wiki appears to do nothing, run its
+command by hand: a Lua parse error is the giveaway, and the fix is to rewrite
+it as `hl.dsp.*`. The dispatcher names are all in
+`/usr/share/hypr/stubs/hl.meta.lua`.
 
 ### Icons
 
