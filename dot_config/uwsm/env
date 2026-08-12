@@ -10,14 +10,17 @@
 
 # ---- Qt / KDE app theming ----
 #
-# Dolphin, Gwenview, Okular and friends read their colours, icon theme and
-# fonts from kdeglobals via KDE's Qt platform theme plugin. Outside a Plasma
-# session nothing sets this, so they fall back to raw unstyled Qt -- which is
-# what "Dolphin theming is broken" looks like.
+# Do NOT set QT_QPA_PLATFORMTHEME=kde here. It themes Dolphin correctly, but
+# outside a Plasma session it also breaks opening files: KIO stops resolving
+# the default application and puts up an "Open With" dialog that lists nothing
+# and cannot be dismissed into anything. Measured, not guessed --
+# `kde-open <image>` fails 3/3 with it set and succeeds 4/4 without.
 #
-# Provided by the plasma-integration package. Configure the values themselves
-# with `systemsettings` as usual; they still live in kdeglobals.
-export QT_QPA_PLATFORMTHEME=kde
+# Styling instead comes from Kvantum, which is a Qt *style* rather than a
+# platform theme plugin, so it never touches KIO's dialog handling. The theme
+# itself is picked in ~/.config/Kvantum/kvantum.kvconfig (currently
+# Dream-Violet-Dark-Kvantum); change it with `kvantummanager`.
+export QT_STYLE_OVERRIDE=kvantum
 
 # ---- Steam ----
 #

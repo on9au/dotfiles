@@ -157,9 +157,14 @@ fc-query --format='%{charset}\n' /usr/local/share/fonts/f/FiraCodeNerdFont_Regul
 ### Tray
 
 waybar's tray has no per-item ignore list, so unwanted indicators are turned
-off at the source. fcitx5's is its `notificationitem` addon, disabled in
-`fcitx5/addon/notificationitem.conf` — input switching still works, only the
-icon is gone.
+off at the source. fcitx5's is its `notificationitem` addon, disabled by
+passing `--disable=notificationitem` from a copy of its autostart entry in
+`autostart/org.fcitx.Fcitx5.desktop` (a same-named file there overrides
+`/etc/xdg/autostart`). Input switching still works, only the icon is gone.
+
+Writing `Enabled=False` into `fcitx5/addon/notificationitem.conf` looks like
+the tidier fix but does nothing — fcitx5 loads the addon regardless. The CLI
+flag is the one that works.
 
 ### What starts with the session
 
@@ -215,14 +220,34 @@ hyprctl clients -j | jq -r '.[] | select(.xwayland) | .class'
 
 ### Qt apps outside Plasma
 
-`QT_QPA_PLATFORMTHEME=kde` in `uwsm/env` is what makes Dolphin, Gwenview and
-Okular read their colours, icons and fonts from `kdeglobals`. Without it they
-fall back to unstyled Qt. The plugin comes from `plasma-integration`.
+**Do not set `QT_QPA_PLATFORMTHEME=kde`.** It is the obvious way to theme
+Dolphin outside Plasma, and it works, but it also breaks opening files: KIO
+stops resolving the default application and shows an "Open With" dialog that
+lists nothing. Measured with `kde-open <image>`:
+
+| `QT_QPA_PLATFORMTHEME` | opens the image |
+| --- | --- |
+| `kde` (plasma-integration) | 0/3 |
+| unset | 4/4 |
+| `gtk3` | 2/2 |
+| `xdgdesktopportal` | 2/2 |
+
+So it is specific to plasma-integration's plugin, not to platform themes in
+general. Styling comes from **Kvantum** instead — a Qt *style*, not a platform
+theme plugin, so it never touches KIO's dialog handling:
+
+```sh
+export QT_STYLE_OVERRIDE=kvantum   # in uwsm/env
+```
+
+The theme is set in `~/.config/Kvantum/kvantum.kvconfig` via `kvantummanager`.
+For fuller control (icon theme, fonts, colour scheme) `qt6ct` is the better
+option — it is a platform theme, but not KDE's, so it should not reintroduce
+the bug. It can use Kvantum as its widget style.
 
 File associations live in `mimeapps.list` (tracked). Images had no entry at
 all, so they fell through to whatever the system mimeinfo cache picked —
-Brave — which is what produced the broken "open with" prompt. They are pinned
-to Gwenview now:
+Brave. They are pinned to Gwenview now:
 
 ```bash
 xdg-mime query default image/png
