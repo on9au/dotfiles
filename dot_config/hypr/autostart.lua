@@ -13,6 +13,20 @@ local function app(cmd)
     hl.exec_cmd("uwsm app -- " .. cmd)
 end
 
+---Launch a program and place it on a workspace.
+---
+---The rule is attached to this launch only, so it does not follow the app
+---around: opening a second terminal later still lands wherever you are, which
+---a `hl.window_rule` matching on class would not.
+---
+---`silent` puts the window on the workspace without switching to it, so
+---startup does not shuffle you between screens while things come up.
+---@param cmd string
+---@param workspace string|number
+local function app_on(cmd, workspace)
+    hl.exec_cmd("uwsm app -- " .. cmd, { workspace = workspace .. " silent" })
+end
+
 hl.on("hyprland.start", function()
     -- Authentication dialogs (anything asking for a password / sudo prompt).
     app("/usr/lib/hyprpolkitagent/hyprpolkitagent")
@@ -35,4 +49,21 @@ hl.on("hyprland.start", function()
         ("sh -c 'awww-daemon & until awww query >/dev/null 2>&1; do sleep 0.1; done; awww img %q'")
             :format(apps.wallpaper)
     )
+
+    ------------------------
+    ---- APPLICATIONS   ----
+    ------------------------
+    --
+    -- These used to be XDG autostart entries in ~/.config/autostart from the
+    -- KDE days. Those are removed via .chezmoiremove -- left in place they run
+    -- a second copy, since uwsm honours XDG autostart too.
+
+    app_on(apps.terminal, 1)
+    app_on("firefox", 2)
+    app_on("discord", 6)
+    app_on("spotify-launcher", 7)
+
+    -- Steam to the tray only. -silent is Steam's own flag for starting without
+    -- opening the library window, so there is no window to place.
+    app("steam -silent")
 end)

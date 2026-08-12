@@ -1,0 +1,13 @@
+# Targets chezmoi deletes on apply.
+#
+# XDG autostart leftovers from the KDE setup. uwsm runs XDG autostart entries
+# too, so with these in place Discord and Steam each launch twice -- once from
+# here and once from hypr/autostart.lua, which is where they are now defined
+# (with their workspace placement).
+#
+# Listed here rather than deleted once because both applications rewrite the
+# file whenever their in-app "launch on startup" option is toggled. If they
+# keep coming back, turn that setting off inside Discord and Steam as well --
+# this only cleans up after them.
+.config/autostart/discord.desktop
+.config/autostart/steam.desktop

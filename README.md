@@ -154,6 +154,29 @@ off at the source. fcitx5's is its `notificationitem` addon, disabled in
 `fcitx5/addon/notificationitem.conf` — input switching still works, only the
 icon is gone.
 
+### What starts with the session
+
+Defined in `hypr/autostart.lua`, not XDG autostart:
+
+| app | lands on |
+| --- | --- |
+| kitty | 1 |
+| firefox | 2 |
+| discord | 6 |
+| spotify | 7 |
+| steam | tray only (`-silent`, no window) |
+
+Placement uses the per-launch rule argument to `hl.exec_cmd`, **not** a
+`window_rule` matching on class. A class rule would drag *every* future window
+of that app to the workspace — so opening a second terminal would yank it to 1.
+This way only the launched instance is placed. `silent` puts it there without
+switching to it, so the session doesn't shuffle you around while it comes up.
+
+The old `~/.config/autostart` entries for Discord and Steam are deleted via
+`.chezmoiremove`: uwsm runs XDG autostart too, so leaving them there launches
+each app twice. Both apps rewrite that file when their in-app "run on startup"
+setting is toggled, so turn it off inside them as well if they reappear.
+
 ### Session management
 
 `SUPER`+`Shift`+`M` opens `~/.local/bin/powermenu`, a fuzzel menu with lock /
