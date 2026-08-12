@@ -68,7 +68,15 @@ fi
 echo "==> greeter compositor config parses"
 
 echo
-echo "STAGED-OK -- nothing switched over yet."
-echo "sddm is still your login manager. Verify, then switch with:"
-echo "  sudo systemctl disable sddm.service"
-echo "  sudo systemctl enable greetd.service"
+# Report what is actually true rather than assuming a first-time install --
+# re-runs happen far more often than the initial one, and claiming "sddm is
+# still your login manager" after the switch is worse than saying nothing.
+if [ "$(systemctl is-enabled greetd.service 2>/dev/null)" = "enabled" ]; then
+    echo "STAGED-OK -- greetd is already your login manager."
+    echo "Log out to pick up the new greeter config."
+else
+    echo "STAGED-OK -- nothing switched over yet."
+    echo "sddm is still your login manager. Verify, then switch with:"
+    echo "  sudo systemctl disable sddm.service"
+    echo "  sudo systemctl enable greetd.service"
+fi
