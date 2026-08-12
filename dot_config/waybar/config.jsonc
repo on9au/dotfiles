@@ -19,7 +19,7 @@
   ],
   "modules-right": [
     "tray",
-    "custom/fcitx5_layout",
+    "custom/fcitx5",
     "cpu",
     "memory",
     "temperature",
@@ -136,12 +136,12 @@
     "icon-size": 18,
     "spacing": 10
   },
-  "custom/fcitx5_layout": {
-    "exec": "{{ .chezmoi.homeDir }}/.config/waybar/scripts/fcitx5-layout.sh",
-    "interval": 1,
+  "custom/fcitx5": {
+    "exec": "$HOME/.config/waybar/scripts/fcitx5-layout.sh",
+    "restart-interval": 2,
     "format": "  {}",
-    "on-click": "fcitx5-remote -o",
-    "tooltip": false
+    "tooltip": false,
+    "on-click": "fcitx5-remote -t"
   },
   "custom/notification": {
     "tooltip": false,

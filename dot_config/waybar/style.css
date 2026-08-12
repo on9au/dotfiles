@@ -52,6 +52,7 @@ window#waybar {
 #pulseaudio,
 #network,
 #tray,
+#custom-fcitx5,
 #custom-notification,
 #submap {
     padding: 0 10px;
