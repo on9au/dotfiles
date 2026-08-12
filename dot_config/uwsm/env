@@ -8,6 +8,21 @@
 #
 # Shell syntax. Applied at login -- edits need a re-login to take effect.
 
+# ---- sudo password prompts outside a terminal ----
+#
+# sudo reads the password from the terminal when there is one. With this set it
+# falls back to a graphical prompt when there is *no* tty -- a GUI app, a
+# script run from a launcher, or a command sent by a tool that has no terminal
+# attached. Without it those just fail with "a terminal is required".
+#
+# ksshaskpass is Qt6, so it picks up the qt6ct theming rather than looking like
+# a 1998 X11 dialog. Requires: pacman -S ksshaskpass
+#
+# Note this means anything running in your session can trigger a password
+# prompt on screen; that is the same trade-off polkit already makes, but it is
+# a real one. Comment this out to go back to terminal-only prompts.
+export SUDO_ASKPASS=/usr/bin/ksshaskpass
+
 # ---- Qt / KDE app theming ----
 #
 # Do NOT set QT_QPA_PLATFORMTHEME=kde here. It themes Dolphin correctly, but

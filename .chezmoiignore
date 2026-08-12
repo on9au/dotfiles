@@ -3,3 +3,8 @@
 # KDE rewrites this constantly and it holds machine-specific state (Xwayland
 # Scale, per-output Tiling UUIDs), so it drifted on every `chezmoi status`.
 .config/kwinrc
+
+# Root-owned system config kept in this repo for reference (greetd lives in
+# /etc, which chezmoi does not manage). Without this, chezmoi would try to
+# create ~/system/greetd/... since every path here is relative to $HOME.
+system

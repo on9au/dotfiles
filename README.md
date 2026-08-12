@@ -19,6 +19,53 @@ paru -S waybar-git
 `playerctl` drives the media keys, `pavucontrol` and `networkmanager` (nmtui)
 are what the waybar audio/network modules open on click.
 
+### Login manager (greetd + ReGreet)
+
+```bash
+sudo pacman -S greetd greetd-regreet cage
+```
+
+Config lives in `/etc`, which chezmoi does not manage, so the copies in
+`system/greetd/` are the source of truth and `system` is in `.chezmoiignore`
+(otherwise chezmoi would try to create `~/system/…`). To install them:
+
+```bash
+sudo install -Dm644 system/greetd/config.toml  /etc/greetd/config.toml
+sudo install -Dm644 system/greetd/regreet.toml /etc/greetd/regreet.toml
+sudo systemctl disable sddm.service
+sudo systemctl enable greetd.service
+```
+
+ReGreet is a GTK app, so it needs a compositor: greetd runs it inside **cage**,
+a kiosk compositor that shows one fullscreen app.
+
+**The greeter runs as the `greeter` user and cannot read `/home/djpro`** (mode
+`700`). Anything it references has to be world-readable, so these are copied
+into `/usr/share` rather than pointed at the home directory:
+
+| asset | copied to |
+| --- | --- |
+| wallpaper | `/usr/share/backgrounds/regreet-wallpaper.jpg` |
+| `Posy_Cursor_Black` | `/usr/share/icons/` |
+| `YAMIS` icons | `/usr/share/icons/` |
+
+A default cursor or missing background at the login screen means one of those
+copies is stale — re-copy after changing the wallpaper. `system/greetd/install.sh`
+does the whole staging step and is safe to re-run.
+
+`/etc/greetd/regreet.toml` is owned by the `greetd-regreet` package, so an
+upgrade will drop a `.pacnew` beside it rather than overwrite; re-apply from
+this repo if that happens.
+
+Sudo prompts outside a terminal (GUI apps, launcher scripts) use
+`SUDO_ASKPASS=/usr/bin/ksshaskpass`, set in `uwsm/env`. Requires
+`pacman -S ksshaskpass`.
+
+Pick **"Hyprland (uwsm)"** in the session list, not plain "Hyprland" — see
+below. `vt = 1` in `config.toml` puts the greeter on the first VT, and cage's
+`-s` keeps VT switching available, so `Ctrl`+`Alt`+`F2` is still an escape
+hatch if the greeter ever fails to start.
+
 ### Logging in
 
 Pick **"Hyprland (uwsm)"** at the greeter, not plain "Hyprland". uwsm runs the

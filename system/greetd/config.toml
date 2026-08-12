@@ -1,0 +1,23 @@
+# greetd -- login manager. Installed to /etc/greetd/config.toml.
+#
+# NOT managed by chezmoi: it lives outside $HOME and is root-owned. The copy in
+# this repo is the source of truth; see the README for the install command.
+#
+# ReGreet is a GTK application, so it needs a Wayland compositor to draw in.
+# cage is a kiosk compositor that runs exactly one app fullscreen, which is
+# what that command does.
+
+[terminal]
+# The VT the greeter takes over. 1 is the one you land on at boot.
+vt = 1
+
+[default_session]
+# -s allows switching away to another VT, which is the escape hatch if the
+# greeter ever fails to come up: Ctrl+Alt+F2 still gets you a text login.
+command = "cage -s -- regreet"
+
+# Unprivileged user the greeter runs as, created by the greetd package. This
+# is why the greeter cannot read anything under /home/djpro -- wallpaper,
+# cursor and icon themes have to live somewhere world-readable. See
+# regreet.toml.
+user = "greeter"

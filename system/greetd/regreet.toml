@@ -1,0 +1,36 @@
+# ReGreet -- the greeter itself. Installed to /etc/greetd/regreet.toml.
+#
+# NOT managed by chezmoi (root-owned, outside $HOME). See the README.
+#
+# Everything referenced here must be readable by the `greeter` user, which
+# cannot see inside /home/djpro (mode 700). So the wallpaper, cursor theme and
+# icon theme are copied into /usr/share rather than pointed at ~/.icons,
+# ~/.local/share/icons or ~/Pictures. If the greeter comes up with a default
+# cursor or no background, that is the cause.
+
+[background]
+path = "/usr/share/backgrounds/regreet-wallpaper.jpg"
+# Fill the screen, cropping rather than stretching -- the wallpaper is
+# 3840x2160 and the panels are 16:9, so nothing is actually cropped.
+fit = "Cover"
+
+[GTK]
+# Dark to match the rest of the desktop.
+application_prefer_dark_theme = true
+
+# Copied to /usr/share/icons so the greeter and the session use the same
+# pointer, otherwise the cursor visibly changes at login.
+cursor_theme_name = "Posy_Cursor_Black"
+
+# Same font as the GTK apps in-session.
+font_name = "Noto Sans 12"
+
+# Also copied to /usr/share/icons.
+icon_theme_name = "YAMIS"
+
+# Widget theme. Breeze ships system-wide already, so it needs no copying.
+theme_name = "Breeze"
+
+[commands]
+reboot = ["systemctl", "reboot"]
+poweroff = ["systemctl", "poweroff"]
