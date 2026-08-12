@@ -154,6 +154,21 @@ before picking a glyph:
 fc-query --format='%{charset}\n' /usr/local/share/fonts/f/FiraCodeNerdFont_Regular.ttf
 ```
 
+### Notification centre has no volume slider
+
+Deliberate. swaync 0.12.6's `volume` widget binds to a sink at startup and does
+not follow the default-sink selection, so it showed and controlled the wrong
+output. It is not a PipeWire mismatch — `pactl info` and `wpctl status` both
+report the right default; swaync just ignores it.
+
+There is no way to point it at a sink (only the `backlight` widget takes a
+`device`), and `swaync-git` is *older* than the released 0.12.6, so there is
+nothing to upgrade to. A slider that lies about the volume is worse than none.
+
+Volume lives in waybar instead: scroll it to adjust, click for `pavucontrol`.
+To try the widget again, put `"volume"` back in `widgets` in
+`swaync/config.json`.
+
 ### Tray
 
 waybar's tray has no per-item ignore list, so unwanted indicators are turned
@@ -241,10 +256,19 @@ export QT_QPA_PLATFORMTHEME=qt6ct   # in uwsm/env
 ```
 
 Configured in `qt6ct/qt6ct.conf` (tracked) or the `qt6ct` GUI — widget style,
-icon theme, fonts and dialog behaviour. The widget style is **Kvantum**, whose
-own theme (`Dream-Violet-Dark-Kvantum`) is set separately with
-`kvantummanager`; Kvantum supplies the colours, which is why no qt6ct colour
-scheme is applied.
+icon theme, fonts and dialog behaviour.
+
+Dolphin, Gwenview and Okular are themed **Catppuccin Mocha**, matching kitty,
+waybar, fuzzel and swaync. That needs two pieces:
+
+- **style `Fusion`**, not Kvantum. Fusion honours the Qt palette; Kvantum
+  ignores it and paints its own colours, which is why the desktop looked like
+  two different themes.
+- **`qt6ct/colors/catppuccin-mocha.conf`** (tracked), a 21-role QPalette in
+  `#aarrggbb`, selected with `custom_palette=true` + `color_scheme_path`.
+
+To go back to Kvantum: `style=kvantum` and `custom_palette=false`. Its theme
+(`Dream-Violet-Dark-Kvantum`) is still configured via `kvantummanager`.
 
 `QT_STYLE_OVERRIDE` is deliberately **not** set: it beats qt6ct's own style
 setting and makes the style dropdown in the GUI do nothing.

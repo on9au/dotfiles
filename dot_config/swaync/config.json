@@ -39,7 +39,7 @@
   "cssPriority": "user",
   "ignore-gtk-theme": true,
 
-  "widgets": ["title", "dnd", "mpris", "volume", "notifications"],
+  "widgets": ["title", "dnd", "mpris", "notifications"],
 
   "widget-config": {
     "title": {
