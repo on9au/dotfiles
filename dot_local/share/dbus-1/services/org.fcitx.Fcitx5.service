@@ -1,0 +1,21 @@
+[D-BUS Service]
+# Overrides /usr/share/dbus-1/services/org.fcitx.Fcitx5.service --
+# $XDG_DATA_HOME/dbus-1/services wins over /usr/share/dbus-1/services.
+#
+# The only change is --disable=notificationitem, which stops fcitx5 creating a
+# Status Notifier item, i.e. the language icon in waybar's tray.
+#
+# This file is the one that matters. fcitx5 is normally started by D-Bus
+# activation (dbus-...-org.fcitx.Fcitx5@0.service), NOT by XDG autostart --
+# app-org.fcitx.Fcitx5@autostart.service sits inactive. Patching only the
+# autostart entry therefore changed nothing: the first app to ask for the
+# org.fcitx.Fcitx5 name activated it again from the system file above, without
+# the flag.
+#
+# ~/.config/autostart/org.fcitx.Fcitx5.desktop carries the same flag so both
+# start paths agree.
+#
+# Input switching is unaffected: SUPER+Space still cycles keyboard-us, pinyin
+# and mozc.
+Name=org.fcitx.Fcitx5
+Exec=/usr/bin/fcitx5 --disable=notificationitem

@@ -172,14 +172,32 @@ To try the widget again, put `"volume"` back in `widgets` in
 ### Tray
 
 waybar's tray has no per-item ignore list, so unwanted indicators are turned
-off at the source. fcitx5's is its `notificationitem` addon, disabled by
-passing `--disable=notificationitem` from a copy of its autostart entry in
-`autostart/org.fcitx.Fcitx5.desktop` (a same-named file there overrides
-`/etc/xdg/autostart`). Input switching still works, only the icon is gone.
+off at the source. fcitx5's is its `notificationitem` addon, switched off with
+`--disable=notificationitem`. Input switching still works, only the icon goes.
 
-Writing `Enabled=False` into `fcitx5/addon/notificationitem.conf` looks like
-the tidier fix but does nothing — fcitx5 loads the addon regardless. The CLI
-flag is the one that works.
+The flag has to be in **two** places, and the one that actually matters is the
+less obvious one:
+
+| file | start path |
+| --- | --- |
+| `local/share/dbus-1/services/org.fcitx.Fcitx5.service` | **D-Bus activation — this is the live one** |
+| `autostart/org.fcitx.Fcitx5.desktop` | XDG autostart |
+
+fcitx5 is started on demand by D-Bus, not by autostart:
+`app-org.fcitx.Fcitx5@autostart.service` sits *inactive* while
+`dbus-…-org.fcitx.Fcitx5@0.service` runs. So patching only the autostart entry
+changes nothing — the first app to ask for the `org.fcitx.Fcitx5` name
+re-activates it from `/usr/share/dbus-1/services`, without the flag.
+`$XDG_DATA_HOME/dbus-1/services` overrides that.
+
+Two things that look tidier and do nothing: `Enabled=False` in
+`fcitx5/addon/notificationitem.conf` (fcitx5 loads the addon anyway), and
+patching the autostart entry alone. Check which path is live with:
+
+```bash
+systemctl --user list-units --all | grep -i fcitx
+pgrep -af /usr/bin/fcitx5          # should show --disable=notificationitem
+```
 
 ### What starts with the session
 
