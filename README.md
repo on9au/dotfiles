@@ -30,8 +30,11 @@ Config lives in `/etc`, which chezmoi does not manage, so the copies in
 (otherwise chezmoi would try to create `~/system/…`). To install them:
 
 ```bash
-sudo install -Dm644 system/greetd/config.toml  /etc/greetd/config.toml
-sudo install -Dm644 system/greetd/regreet.toml /etc/greetd/regreet.toml
+# installs packages, copies the assets the greeter can read, and drops
+# config.toml / regreet.toml / hyprland.conf into /etc/greetd.
+# Safe to re-run; refuses to continue if the greeter config fails to parse.
+sudo sh system/greetd/install.sh
+
 sudo systemctl disable sddm.service
 sudo systemctl enable greetd.service
 ```
@@ -74,9 +77,13 @@ Sudo prompts outside a terminal (GUI apps, launcher scripts) use
 `pacman -S ksshaskpass`.
 
 Pick **"Hyprland (uwsm)"** in the session list, not plain "Hyprland" — see
-below. `vt = 1` in `config.toml` puts the greeter on the first VT, and cage's
-`-s` keeps VT switching available, so `Ctrl`+`Alt`+`F2` is still an escape
-hatch if the greeter ever fails to start.
+below. `vt = 1` in `config.toml` puts the greeter on the first VT, and
+`Ctrl`+`Alt`+`F2` reaches a text login if the greeter ever fails to start.
+Recovery from there:
+
+```bash
+sudo systemctl disable greetd && sudo systemctl enable sddm && sudo reboot
+```
 
 ### Logging in
 
