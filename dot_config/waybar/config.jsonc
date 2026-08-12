@@ -2,153 +2,155 @@
 // Reload after editing:  killall -SIGUSR2 waybar
 // Module reference:      https://github.com/Alexays/Waybar/wiki/Configuration
 {
-    "layer": "top",
-    "position": "top",
-    "height": 34,
-    "spacing": 4,
-    "margin-top": 6,
-    "margin-left": 12,
-    "margin-right": 12,
-
-    "modules-left": ["hyprland/workspaces", "hyprland/submap", "hyprland/window"],
-    "modules-center": ["clock"],
-    "modules-right": [
-        "tray",
-        "cpu",
-        "memory",
-        "temperature",
-        "pulseaudio",
-        "network",
-        "custom/notification"
-    ],
-
-    // All ten always show because rules.lua marks them persistent.
-    //
-    // Clicking a number does NOT work, and cannot be fixed from here: waybar
-    // has `dispatch workspace name:<n>` compiled in, but this setup uses a Lua
-    // Hyprland config, so hyprctl evaluates dispatch arguments as Lua and the
-    // old syntax is a parse error. Scrolling works because those commands are
-    // ours to write in the Lua form. See the README.
-    "hyprland/workspaces": {
-        "format": "{name}",
-        // Scroll over the workspace list to move through them.
-        "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus({workspace = \"e+1\"})'",
-        "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({workspace = \"e-1\"})'"
-    },
-
-    "hyprland/submap": {
-        "format": "󰌌 {}",
-        "tooltip": false
-    },
-
-    "hyprland/window": {
-        "format": "{title}",
-        "max-length": 70,
-        "separate-outputs": true,
-        "rewrite": {
-            "(.*) — Mozilla Firefox": "$1",
-            "(.*) - Chromium": "$1",
-            "(.*) - Visual Studio Code": "$1"
-        }
-    },
-
-    "clock": {
-        "format": "{:%a %d %b  %H:%M}",
-        "format-alt": "{:%Y-%m-%d %H:%M:%S}",
-        "interval": 1,
-        "tooltip-format": "<tt><small>{calendar}</small></tt>",
-        "calendar": {
-            "mode": "month",
-            "on-scroll": 1,
-            "format": {
-                "months": "<span color='#f9e2af'><b>{}</b></span>",
-                "days": "<span color='#cdd6f4'>{}</span>",
-                "weekdays": "<span color='#89b4fa'><b>{}</b></span>",
-                "today": "<span color='#f38ba8'><b>{}</b></span>"
-            }
-        },
-        "actions": {
-            "on-click-right": "mode",
-            "on-scroll-up": "shift_up",
-            "on-scroll-down": "shift_down"
-        }
-    },
-
-    "cpu": {
-        "format": "󰻠 {usage}%",
-        "interval": 2,
-        "on-click": "kitty -e htop"
-    },
-
-    "memory": {
-        "format": "󰍛 {percentage}%",
-        "interval": 5,
-        "tooltip-format": "{used:0.1f}G / {total:0.1f}G",
-        "on-click": "kitty -e htop"
-    },
-
-    // Package-id temperature of the i5-13600KF. hwmon numbering is not stable
-    // across boots, so this points at the coretemp platform device instead of
-    // /sys/class/hwmon/hwmonN.
-    "temperature": {
-        "hwmon-path-abs": "/sys/devices/platform/coretemp.0/hwmon",
-        "input-filename": "temp1_input",
-        "critical-threshold": 85,
-        "format": "{icon} {temperatureC}°C",
-        "format-critical": "󰸁 {temperatureC}°C",
-        "format-icons": ["󰔑", "󰔏", "󰔐"],
-        "interval": 5
-    },
-
-    "pulseaudio": {
-        "format": "{icon} {volume}%",
-        "format-muted": "󰝟 muted",
-        "format-icons": {
-            "headphone": "󰋋",
-            "headset": "󰋎",
-            "default": ["󰕿", "󰖀", "󰕾"]
-        },
-        "scroll-step": 5,
-        "on-click": "pavucontrol",
-        "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
-    },
-
-    // No "interface" set on purpose: this box has ethernet, wifi and
-    // tailscale, so waybar picks whichever is actually carrying traffic.
-    "network": {
-        "format-ethernet": "󰈀 {bandwidthDownBits}",
-        "format-wifi": "󰖩  {signalStrength}%",
-        "format-linked": "󰈀 no IP",
-        "format-disconnected": "󰖪 offline",
-        "tooltip-format": "{ifname}  {ipaddr}/{cidr}",
-        "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ifname}  {ipaddr}",
-        "interval": 5,
-        "on-click": "kitty -e nmtui"
-    },
-
-    "tray": {
-        "icon-size": 18,
-        "spacing": 10
-    },
-
-    "custom/notification": {
-        "tooltip": false,
-        "format": "{icon}",
-        "format-icons": {
-            "notification": "󰂚",
-            "none": "󰂜",
-            "dnd-notification": "󰂛",
-            "dnd-none": "󰂛",
-            "inhibited-notification": "󰂚",
-            "inhibited-none": "󰂜",
-            "dnd-inhibited-notification": "󰂛",
-            "dnd-inhibited-none": "󰂛"
-        },
-        "return-type": "json",
-        "exec-if": "which swaync-client",
-        "exec": "swaync-client -swb",
-        "on-click": "swaync-client -t -sw",
-        "on-click-right": "swaync-client -d -sw",
-        "escape": true
+  "layer": "top",
+  "position": "top",
+  "height": 34,
+  "spacing": 4,
+  "margin-top": 6,
+  "margin-left": 12,
+  "margin-right": 12,
+  "modules-left": [
+    "hyprland/workspaces",
+    "hyprland/submap",
+    "hyprland/window"
+  ],
+  "modules-center": [
+    "clock"
+  ],
+  "modules-right": [
+    "tray",
+    "cpu",
+    "memory",
+    "temperature",
+    "pulseaudio",
+    "network",
+    "custom/notification"
+  ],
+  // All ten always show because rules.lua marks them persistent.
+  //
+  // Clicking a number does NOT work, and cannot be fixed from here: waybar
+  // has `dispatch workspace name:<n>` compiled in, but this setup uses a Lua
+  // Hyprland config, so hyprctl evaluates dispatch arguments as Lua and the
+  // old syntax is a parse error. Scrolling works because those commands are
+  // ours to write in the Lua form. See the README.
+  "hyprland/workspaces": {
+    "format": "{name}",
+    // Scroll over the workspace list to move through them.
+    "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus({workspace = \"e+1\"})'",
+    "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({workspace = \"e-1\"})'"
+  },
+  "hyprland/submap": {
+    "format": "󰌌 {}",
+    "tooltip": false
+  },
+  "hyprland/window": {
+    "format": "{title}",
+    "max-length": 70,
+    "separate-outputs": true,
+    "rewrite": {
+      "(.*) — Mozilla Firefox": "$1",
+      "(.*) - Chromium": "$1",
+      "(.*) - Visual Studio Code": "$1"
     }
+  },
+  "clock": {
+    "format": "{:%a %d %b  %H:%M}",
+    "format-alt": "{:%Y-%m-%d %H:%M:%S}",
+    "interval": 1,
+    "tooltip-format": "<tt><small>{calendar}</small></tt>",
+    "calendar": {
+      "mode": "month",
+      "on-scroll": 1,
+      "format": {
+        "months": "<span color='#f9e2af'><b>{}</b></span>",
+        "days": "<span color='#cdd6f4'>{}</span>",
+        "weekdays": "<span color='#89b4fa'><b>{}</b></span>",
+        "today": "<span color='#f38ba8'><b>{}</b></span>"
+      }
+    },
+    "actions": {
+      "on-click-right": "mode",
+      "on-scroll-up": "shift_up",
+      "on-scroll-down": "shift_down"
+    }
+  },
+  "cpu": {
+    "format": "󰻠 {usage}%",
+    "interval": 2,
+    "on-click": "kitty -e htop"
+  },
+  "memory": {
+    "format": "󰍛 {percentage}%",
+    "interval": 5,
+    "tooltip-format": "{used:0.1f}G / {total:0.1f}G",
+    "on-click": "kitty -e htop"
+  },
+  // Package-id temperature of the i5-13600KF. hwmon numbering is not stable
+  // across boots, so this points at the coretemp platform device instead of
+  // /sys/class/hwmon/hwmonN.
+  "temperature": {
+    "hwmon-path-abs": "/sys/devices/platform/coretemp.0/hwmon",
+    "input-filename": "temp1_input",
+    "critical-threshold": 85,
+    "format": "{icon} {temperatureC}°C",
+    "format-critical": "󰸁 {temperatureC}°C",
+    "format-icons": [
+      "󰔑",
+      "󰔏",
+      "󰔐"
+    ],
+    "interval": 5
+  },
+  "pulseaudio": {
+    "format": "{icon} {volume}%",
+    "format-muted": "󰝟 muted",
+    "format-icons": {
+      "headphone": "󰋋",
+      "headset": "󰋎",
+      "default": [
+        "󰕿",
+        "󰖀",
+        "󰕾"
+      ]
+    },
+    "scroll-step": 5,
+    "on-click": "pavucontrol",
+    "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+  },
+  // No "interface" set on purpose: this box has ethernet, wifi and
+  // tailscale, so waybar picks whichever is actually carrying traffic.
+  "network": {
+    "format-ethernet": "󰈀 {bandwidthDownBits}",
+    "format-wifi": "󰖩  {signalStrength}%",
+    "format-linked": "󰈀 no IP",
+    "format-disconnected": "󰖪 offline",
+    "tooltip-format": "{ifname}  {ipaddr}/{cidr}",
+    "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ifname}  {ipaddr}",
+    "interval": 5,
+    "on-click": "kitty -e nmtui"
+  },
+  "tray": {
+    "icon-size": 18,
+    "spacing": 10
+  },
+  "custom/notification": {
+    "tooltip": false,
+    "format": "{icon}",
+    "format-icons": {
+      "notification": "󰂚",
+      "none": "󰂜",
+      "dnd-notification": "󰂛",
+      "dnd-none": "󰂛",
+      "inhibited-notification": "󰂚",
+      "inhibited-none": "󰂜",
+      "dnd-inhibited-notification": "󰂛",
+      "dnd-inhibited-none": "󰂛"
+    },
+    "return-type": "json",
+    "exec-if": "which swaync-client",
+    "exec": "swaync-client -swb",
+    "on-click": "swaync-client -t -sw",
+    "on-click-right": "swaync-client -d -sw",
+    "escape": true
+  }
 }
