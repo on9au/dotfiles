@@ -39,7 +39,11 @@ done
 echo "==> installing configs"
 install -Dm644 "$REPO/config.toml" /etc/greetd/config.toml
 install -Dm644 "$REPO/regreet.toml" /etc/greetd/regreet.toml
-install -Dm644 "$REPO/hyprland.conf" /etc/greetd/hyprland.conf
+install -Dm644 "$REPO/hyprland.lua" /etc/greetd/hyprland.lua
+
+# Stale hyprlang greeter config from before the switch to Lua; leaving it would
+# just be a confusing second config that nothing reads.
+rm -f /etc/greetd/hyprland.conf
 
 # Sanity-check the greeter compositor config before it becomes the only way in.
 #
@@ -55,9 +59,9 @@ else
     verify_cmd=""
 fi
 
-if ! $verify_cmd Hyprland --verify-config -c /etc/greetd/hyprland.conf 2>&1 |
+if ! $verify_cmd Hyprland --verify-config -c /etc/greetd/hyprland.lua 2>&1 |
     grep -q 'config ok'; then
-    echo "ERROR: /etc/greetd/hyprland.conf failed to parse -- not switching." >&2
+    echo "ERROR: /etc/greetd/hyprland.lua failed to parse -- not switching." >&2
     exit 1
 fi
 

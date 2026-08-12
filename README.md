@@ -40,7 +40,7 @@ sudo systemctl enable greetd.service
 ```
 
 ReGreet is a GTK app, so it needs a compositor. greetd runs it inside
-**Hyprland**, using `system/greetd/hyprland.conf`.
+**Hyprland**, using `system/greetd/hyprland.lua`.
 
 Not cage: cage cannot describe monitors. It either extends across every output
 (the default) or uses whichever connected last. Extending builds one ~7680px
@@ -49,10 +49,26 @@ and the background is stretched over both screens. Hyprland gives the greeter
 the same modes, scales and positions as the session — **keep those monitor
 lines in sync with `hypr/monitors.lua`.**
 
-That greeter config is hyprlang, not Lua, on purpose: it is throwaway config
-for one program, and hyprlang keeps `hyprctl dispatch exit` working with the
-classic syntax (see the Lua gotcha above). `exec-once = regreet; hyprctl
-dispatch exit` tears the compositor down the moment the greeter finishes.
+The greeter config is **Lua**, like the session's. A `.conf` works, but
+Hyprland calls it "legacy config" and says so on screen — a deprecation warning
+sitting over the login prompt. The `hyprland.start` handler runs
+`regreet; hyprctl dispatch "hl.dsp.exit()"`, tearing the compositor down the
+moment the greeter finishes (note the Lua dispatch form — the classic syntax
+would be a parse error here too).
+
+The prompt is pinned to the **32" AOC**. Hyprland enumerates `DP-1` first, so
+by default the greeter opened on the Dell; `cursor.default_monitor = "DP-2"`
+plus a `monitor = "DP-2"` window rule put it on the left screen.
+
+A greeter is not a session, so several of Hyprland's on-screen notices are
+turned off in `misc` — otherwise they stack up over the login prompt:
+
+| option | silences |
+| --- | --- |
+| `disable_xdg_env_checks` | "launched directly" — greetd starts it without a session manager's `XDG_*` vars |
+| `disable_scale_notification` | the fractional-scaling notice |
+| `disable_hyprland_guiutils_check`, `disable_watchdog_warning` | qtutils / watchdog nags |
+| `ecosystem.no_update_news`, `no_donation_nag` | update news and donation popups |
 
 **The greeter runs as the `greeter` user and cannot read `/home/djpro`** (mode
 `700`). Anything it references has to be world-readable, so these are copied
