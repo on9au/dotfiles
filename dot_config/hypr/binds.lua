@@ -39,6 +39,18 @@ hl.bind(mod .. " + SHIFT + V",
     hl.dsp.exec_cmd([[sh -c 'cliphist list | fuzzel --dmenu | cliphist decode | wl-copy']]),
     { desc = "clipboard history" })
 
+-- Emoji picker: bemoji, drawn with fuzzel, copies and types the pick.
+--
+-- Not on SUPER + period, which is the obvious key for it and is what most
+-- desktops use: the desktop host spends comma/period on focus-a-monitor
+-- (hosts/desktop/binds.lua), so it would work on the laptop and be dead here.
+-- Shift + E instead, next to the file manager on E.
+--
+-- Absolute path because ~/.local/bin is not on PATH here.
+hl.bind(mod .. " + SHIFT + E",
+    hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/bin/emoji"),
+    { desc = "emoji picker" })
+
 -- Notification centre.
 hl.bind(mod .. " + N", hl.dsp.exec_cmd("swaync-client -t -sw"), { desc = "notifications" })
 

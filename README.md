@@ -9,11 +9,13 @@ managed with chezmoi :3
 current packages used are:
 
 ```bash
-sudo pacman -S hyprland uwsm xdg-desktop-portal-hyprland xdg-desktop-portal-kde plasma-integration fuzzel swaync hyprlock hypridle hyprpolkitagent awww hyprshot cliphist wl-clipboard qt5-wayland qt6-wayland playerctl pavucontrol networkmanager brightnessctl power-profiles-daemon htop
+sudo pacman -S hyprland uwsm xdg-desktop-portal-hyprland xdg-desktop-portal-kde plasma-integration fuzzel swaync hyprlock hypridle hyprpolkitagent awww hyprshot cliphist wl-clipboard wtype noto-fonts-emoji qt5-wayland qt6-wayland playerctl pavucontrol networkmanager brightnessctl power-profiles-daemon htop
 
 # waybar from the AUR, not the repos -- see "The Lua config gotcha" below.
 # The release build cannot switch workspaces on click with a Lua config.
-paru -S waybar-git
+#
+# bemoji is the emoji picker -- see "Emoji picker" below. Only in the AUR.
+paru -S waybar-git bemoji-git
 ```
 
 `playerctl` drives the media keys, `pavucontrol` and `networkmanager` (nmtui)
@@ -21,7 +23,8 @@ are what the waybar audio/network modules open on click, and `htop` is what the
 cpu/memory modules open. `brightnessctl` is the laptop's backlight keys and
 hypridle's dim-before-lock; `power-profiles-daemon` backs the waybar power
 profile switcher and needs enabling (`systemctl enable --now
-power-profiles-daemon`).
+power-profiles-daemon`). `wtype` and `noto-fonts-emoji` are for the emoji
+picker — without the font the picker lists tofu boxes.
 
 ### Two machines
 
@@ -253,6 +256,7 @@ other five still exist on demand.
 | `SUPER` + `T` | flip split direction |
 | `SUPER` + `S` | scratchpad |
 | `SUPER` + `Shift` + `V` | clipboard history |
+| `SUPER` + `Shift` + `E` | emoji picker |
 | `SUPER` + `N` | notification centre |
 | `SUPER` + `Escape` | lock |
 | `SUPER` + `Shift` + `M` | power menu (lock / log out / suspend / reboot / shut down) |
@@ -390,6 +394,37 @@ The old `~/.config/autostart` entries for Discord and Steam are deleted via
 `.chezmoiremove`: uwsm runs XDG autostart too, so leaving them there launches
 each app twice. Both apps rewrite that file when their in-app "run on startup"
 setting is toggled, so turn it off inside them as well if they reappear.
+
+### Emoji picker
+
+`SUPER`+`Shift`+`E` opens `~/.local/bin/emoji`, a wrapper around **bemoji**
+(`paru -S bemoji-git`) that draws the list with fuzzel, so it inherits the same
+theme, size and `Ctrl`+`j`/`k` navigation as the launcher. The pick is copied
+to the clipboard *and* typed into the focused window.
+
+Not on `SUPER`+`.`, which is what most desktops use: the desktop host spends
+comma and period on focus-a-monitor, so that bind would work on the laptop and
+be dead on the desktop.
+
+bemoji has no config file — every knob is an environment variable, which is why
+there is a script rather than a bare `hl.exec_cmd("bemoji")`:
+
+| | |
+| --- | --- |
+| `BEMOJI_PICKER_CMD` | pinned to fuzzel. bemoji's own search order is bemenu → wofi → rofi → dmenu → wmenu → ilia → fuzzel, so it lands on fuzzel here only because none of the others are installed |
+| `-c -t` | copy *and* type. Typing needs `wtype`; the script checks for it first, because bemoji would otherwise copy and then print "No suitable typing tool found" |
+| `-n` | no trailing newline, so pasting doesn't also press Enter |
+
+Inside the picker, `Alt`+`1` copies only and `Alt`+`2` types only. That is not
+configured anywhere: fuzzel's `custom-1`/`custom-2` binds exit with codes 10
+and 11, and those are exactly the codes bemoji reads as clip-only and
+type-only.
+
+First run downloads the Unicode emoji list to `~/.local/share/bemoji/`
+(needs network, once). Picks are counted in
+`~/.local/state/bemoji-history.txt` and float to the top of the list after
+that. `bemoji -D nerd` adds the Nerd Font glyphs to the same database — the
+terminal font here is a Nerd Font, so they render.
 
 ### Session management
 
