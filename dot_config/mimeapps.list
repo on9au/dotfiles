@@ -43,6 +43,8 @@ x-scheme-handler/geo=google-maps-geo-handler.desktop;
 x-scheme-handler/http=firefox.desktop;
 x-scheme-handler/https=firefox.desktop;
 x-scheme-handler/discord-1216669957799018608=discord-1216669957799018608.desktop;
+text/html=firefox.desktop;
+application/pdf=okularApplication_pdf.desktop;
 
 [Default Applications]
 application/json=nvim.desktop;
@@ -104,3 +106,5 @@ image/x-icon=org.kde.gwenview.desktop
 image/avif=org.kde.gwenview.desktop
 image/heif=org.kde.gwenview.desktop
 image/x-xcf=org.kde.gwenview.desktop
+text/html=firefox.desktop
+application/pdf=okularApplication_pdf.desktop
