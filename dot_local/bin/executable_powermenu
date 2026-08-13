@@ -7,37 +7,37 @@
 set -eu
 
 choice=$(
-    printf '%s\n' \
-        '󰌾  Lock' \
-        '󰗽  Log out' \
-        '󰒲  Suspend' \
-        '󰜉  Reboot' \
-        '󰐥  Shut down' |
-        fuzzel --dmenu --prompt='power  ' --lines=5 --width=18
+  printf '%s\n' \
+    '󰌾  Lock' \
+    '󰗽  Log out' \
+    '󰒲  Suspend' \
+    '󰜉  Reboot' \
+    '󰐥  Shut down' |
+    fuzzel --dmenu --prompt='󰤁  ' --lines=5 --width=18
 ) || exit 0 # dismissed with Escape
 
 [ -n "$choice" ] || exit 0
 
 case "$choice" in
 *'Lock')
-    # Via logind so hypridle sees the session lock too.
-    loginctl lock-session
-    ;;
+  # Via logind so hypridle sees the session lock too.
+  loginctl lock-session
+  ;;
 *'Log out')
-    # The session is a systemd unit under uwsm, so tearing that down is the
-    # clean exit -- telling Hyprland to quit directly leaves the user session
-    # units running. Fall back to that only if uwsm is not in charge.
-    if ! uwsm stop 2>/dev/null; then
-        hyprctl dispatch 'hl.dsp.exit()'
-    fi
-    ;;
+  # The session is a systemd unit under uwsm, so tearing that down is the
+  # clean exit -- telling Hyprland to quit directly leaves the user session
+  # units running. Fall back to that only if uwsm is not in charge.
+  if ! uwsm stop 2>/dev/null; then
+    hyprctl dispatch 'hl.dsp.exit()'
+  fi
+  ;;
 *'Suspend')
-    systemctl suspend
-    ;;
+  systemctl suspend
+  ;;
 *'Reboot')
-    systemctl reboot
-    ;;
+  systemctl reboot
+  ;;
 *'Shut down')
-    systemctl poweroff
-    ;;
+  systemctl poweroff
+  ;;
 esac
