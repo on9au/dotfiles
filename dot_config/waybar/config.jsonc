@@ -17,14 +17,22 @@
   "modules-center": [
     "clock"
   ],
+  // One bar for both machines. The four laptop modules -- backlight, battery,
+  // power-profiles-daemon and idle_inhibitor -- are listed unconditionally:
+  // waybar hides a module whose hardware it cannot find, so on the desktop the
+  // backlight and battery simply do not draw rather than showing zeros.
   "modules-right": [
     "tray",
     "custom/fcitx5",
+    "idle_inhibitor",
     "cpu",
     "memory",
     "temperature",
+    "backlight",
     "pulseaudio",
     "network",
+    "power-profiles-daemon",
+    "battery",
     "custom/notification"
   ],
   // All ten always show because rules.lua marks them persistent.
@@ -88,9 +96,11 @@
     "tooltip-format": "{used:0.1f}G / {total:0.1f}G",
     "on-click": "kitty -e htop"
   },
-  // Package-id temperature of the i5-13600KF. hwmon numbering is not stable
-  // across boots, so this points at the coretemp platform device instead of
-  // /sys/class/hwmon/hwmonN.
+  // Package-id CPU temperature. hwmon numbering is not stable across boots, so
+  // this points at the coretemp platform device instead of
+  // /sys/class/hwmon/hwmonN. Resolves on both machines -- the laptop's Core
+  // Ultra 9 285H registers coretemp.0 with a "Package id 0" sensor just as the
+  // desktop's chip does.
   "temperature": {
     "hwmon-path-abs": "/sys/devices/platform/coretemp.0/hwmon",
     "input-filename": "temp1_input",
@@ -120,8 +130,9 @@
     "on-click": "pavucontrol",
     "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
   },
-  // No "interface" set on purpose: this box has ethernet, wifi and
-  // tailscale, so waybar picks whichever is actually carrying traffic.
+  // No "interface" set on purpose: the desktop has ethernet, wifi and
+  // tailscale, the laptop has wlan0 and CloudflareWARP, and waybar picks
+  // whichever is actually carrying traffic. Pinning one would be wrong on both.
   "network": {
     "format-ethernet": "󰈀 {bandwidthDownBits}",
     "format-wifi": "󰖩  {signalStrength}%",
@@ -131,6 +142,75 @@
     "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ifname}  {ipaddr}",
     "interval": 5,
     "on-click": "kitty -e nmtui"
+  },
+  // "device" is not optional here. The laptop has TWO entries in
+  // /sys/class/backlight -- intel_backlight (the panel) and nvidia_0 (the
+  // discrete GPU, which has no display wired to it). Left unset, waybar takes
+  // the first one it finds, which is nvidia_0: the module then shows a
+  // percentage that never matches the screen and scrolling it does nothing.
+  // Same trap as the brightnessctl calls in the laptop's hypr binds.
+  "backlight": {
+    "device": "intel_backlight",
+    "format": "{icon} {percent}%",
+    "format-icons": [
+      "󰃞",
+      "󰃟",
+      "󰃠"
+    ],
+    "scroll-step": 5,
+    "tooltip-format": "backlight {percent}%"
+  },
+  // states drive the CSS classes (#battery.warning, #battery.critical) in
+  // style.css; the numbers are capacity percentages.
+  "battery": {
+    "bat": "BAT0",
+    "adapter": "AC",
+    "states": {
+      "warning": 30,
+      "critical": 15
+    },
+    "format": "{icon} {capacity}%",
+    "format-charging": "󰂄 {capacity}%",
+    "format-plugged": "󰚥 {capacity}%",
+    "format-icons": [
+      "󰂎",
+      "󰁺",
+      "󰁻",
+      "󰁼",
+      "󰁽",
+      "󰁾",
+      "󰁿",
+      "󰂀",
+      "󰂁",
+      "󰂂",
+      "󰁹"
+    ],
+    "tooltip-format": "{capacity}%  {timeTo}\n{power:0.1f}W"
+  },
+  // power-profiles-daemon is enabled as a system service; this module talks to
+  // it over D-Bus. Click to cycle performance / balanced / power-saver.
+  "power-profiles-daemon": {
+    "format": "{icon}",
+    "tooltip-format": "power profile: {profile}\ndriver: {driver}",
+    "tooltip": true,
+    "format-icons": {
+      "default": "󰓅",
+      "performance": "󰓅",
+      "balanced": "󰾅",
+      "power-saver": "󰾆"
+    }
+  },
+  // Click to hold the session awake -- stops hypridle dimming, locking and
+  // suspending under a long build or a film. The coffee cup is lit while the
+  // inhibitor is on.
+  "idle_inhibitor": {
+    "format": "{icon}",
+    "format-icons": {
+      "activated": "󰅶",
+      "deactivated": "󰾪"
+    },
+    "tooltip-format-activated": "idle inhibited",
+    "tooltip-format-deactivated": "idle not inhibited"
   },
   "tray": {
     "icon-size": 18,

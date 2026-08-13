@@ -9,19 +9,12 @@ local apps = require("apps")
 ---- WORKSPACE RULES ----
 -------------------------
 
--- Workspaces 1-5 belong to the AOC (left), 6-10 to the Dell (right), so
--- SUPER + <n> always lands on a predictable screen.
+-- How many workspaces are persistent, and which screen each one lives on,
+-- depends on how many screens there are -- so it is per-host:
 --
--- persistent keeps them alive even while empty, which is what makes all ten
--- numbers show up in waybar (and stay clickable) instead of appearing only
--- once something is open on them.
-for i = 1, 10 do
-    hl.workspace_rule({
-        workspace  = tostring(i),
-        monitor    = i <= 5 and "DP-2" or "DP-1",
-        persistent = true,
-    })
-end
+--   hosts/LAPTOP-ON9AU/rules.lua   1-5 persistent, no pinning (one output)
+--   hosts/desktop/rules.lua        1-10 persistent, pinned across two screens
+require("host").load("rules")
 
 ----------------------
 ---- WINDOW RULES ----

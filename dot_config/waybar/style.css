@@ -49,8 +49,12 @@ window#waybar {
 #cpu,
 #memory,
 #temperature,
+#backlight,
 #pulseaudio,
 #network,
+#power-profiles-daemon,
+#battery,
+#idle_inhibitor,
 #tray,
 #custom-fcitx5,
 #custom-notification,
@@ -134,6 +138,10 @@ window#waybar.empty .modules-left #window {
     font-weight: bold;
 }
 
+#backlight {
+    color: @peach;
+}
+
 #pulseaudio {
     color: @yellow;
 }
@@ -149,6 +157,52 @@ window#waybar.empty .modules-left #window {
 #network.disconnected,
 #network.linked {
     color: @red;
+}
+
+/* ---- Laptop modules ----
+ *
+ * These draw only on a machine that has the hardware; on the desktop waybar
+ * hides them, so the rules below are simply unused there. */
+
+#power-profiles-daemon {
+    color: @mauve;
+}
+
+#power-profiles-daemon.performance {
+    color: @red;
+}
+
+#power-profiles-daemon.power-saver {
+    color: @green;
+}
+
+#battery {
+    color: @green;
+}
+
+#battery.charging,
+#battery.plugged {
+    color: @teal;
+}
+
+/* states.warning / states.critical in config.jsonc set these at 30% and 15%. */
+#battery.warning {
+    color: @yellow;
+}
+
+#battery.critical {
+    color: @red;
+    font-weight: bold;
+}
+
+/* Lit while the inhibitor is holding the session awake, dim when it is not --
+ * the point is to be able to tell at a glance that the screen will not lock. */
+#idle_inhibitor {
+    color: @overlay0;
+}
+
+#idle_inhibitor.activated {
+    color: @yellow;
 }
 
 #custom-notification {

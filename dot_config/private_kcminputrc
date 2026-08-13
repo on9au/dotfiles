@@ -1,3 +1,24 @@
+# KDE input settings. Still tracked because both sessions stay usable during
+# the Hyprland migration -- Hyprland reads none of this.
+#
+# One file for both machines. A [Libinput] section is keyed by vendor/product
+# ID and device name, so a section for hardware that is not attached is simply
+# ignored: the laptop skips the mouse, the desktop skips the touchpad. The
+# equivalent settings for Hyprland live in hypr/hosts/<host>/input.lua and are
+# deliberately kept in step with these.
+#
+# KDE rewrites this file whenever a setting changes in System Settings, which
+# drops these comments and can leave it out of step with the repo. If
+# `chezmoi apply` starts asking about it, diff before overwriting.
+
+# Laptop touchpad. Natural scrolling on; disable-while-typing deliberately off.
+[Libinput][1739][53241][VEN_06CB:00 06CB:CFF9 Touchpad]
+DisableWhileTyping=false
+Enabled=true
+NaturalScroll=true
+
+# Desktop mouse. PointerAccelerationProfile=1 is "flat" (raw 1:1, no
+# acceleration), with no PointerAcceleration key so the speed is 0.
 [Libinput][9610][8209][Glorious Model O Wireless]
 PointerAccelerationProfile=1
 

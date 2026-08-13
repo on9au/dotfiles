@@ -9,7 +9,7 @@ managed with chezmoi :3
 current packages used are:
 
 ```bash
-sudo pacman -S hyprland uwsm xdg-desktop-portal-hyprland xdg-desktop-portal-kde plasma-integration fuzzel swaync hyprlock hypridle hyprpolkitagent awww hyprshot cliphist wl-clipboard qt5-wayland qt6-wayland playerctl pavucontrol networkmanager
+sudo pacman -S hyprland uwsm xdg-desktop-portal-hyprland xdg-desktop-portal-kde plasma-integration fuzzel swaync hyprlock hypridle hyprpolkitagent awww hyprshot cliphist wl-clipboard qt5-wayland qt6-wayland playerctl pavucontrol networkmanager brightnessctl power-profiles-daemon htop
 
 # waybar from the AUR, not the repos -- see "The Lua config gotcha" below.
 # The release build cannot switch workspaces on click with a Lua config.
@@ -17,7 +17,33 @@ paru -S waybar-git
 ```
 
 `playerctl` drives the media keys, `pavucontrol` and `networkmanager` (nmtui)
-are what the waybar audio/network modules open on click.
+are what the waybar audio/network modules open on click, and `htop` is what the
+cpu/memory modules open. `brightnessctl` is the laptop's backlight keys and
+hypridle's dim-before-lock; `power-profiles-daemon` backs the waybar power
+profile switcher and needs enabling (`systemctl enable --now
+power-profiles-daemon`).
+
+### Two machines
+
+This branch runs on a two-monitor desktop and on a laptop (`LAPTOP-ON9AU`, a
+16" Dell with one 3840x2400 panel and hybrid Intel/NVIDIA graphics). The
+settings that genuinely differ live in `hypr/hosts/<host>/`, one file per
+topic, and `hypr/host.lua` — the only templated file in the Hyprland config —
+says which directory this machine uses. Everything else is shared.
+
+| topic | what differs |
+| --- | --- |
+| `monitors.lua` | three outputs vs one; fractional vs integer scale |
+| `input.lua` | mouse feel vs touchpad; numlock |
+| `binds.lua` | focus-a-monitor keys vs backlight keys |
+| `rules.lua` | 10 workspaces pinned across two screens vs 5 on one |
+| `apps.lua` | wallpaper (16:9 vs 16:10) |
+| `autostart.lua` | which applications start, and where |
+
+An unrecognised hostname falls through to `hosts/desktop/`. Adding a third
+machine is a new directory plus one case in `host.lua.tmpl`.
+
+`uwsm/env` is templated for the same reason — see **Hybrid graphics** below.
 
 ### Login manager (greetd + ReGreet)
 
@@ -35,9 +61,16 @@ Config lives in `/etc`, which chezmoi does not manage, so the copies in
 # Safe to re-run; refuses to continue if the greeter config fails to parse.
 sudo sh system/greetd/install.sh
 
-sudo systemctl disable sddm.service
+# NOT `disable sddm.service` -- this machine has never run sddm. Check what is
+# actually enabled before disabling anything; install.sh prints it for you.
+sudo systemctl disable plasmalogin.service
 sudo systemctl enable greetd.service
 ```
+
+The display manager here is **`plasmalogin.service`**, not sddm. This README
+said `disable sddm.service` for a long time, which is a command that succeeds,
+prints nothing useful, and leaves the old greeter enabled. `install.sh` now
+reads `display-manager.service` and tells you the real name.
 
 ReGreet is a GTK app, so it needs a compositor. greetd runs it inside
 **Hyprland**, using `system/greetd/hyprland.lua`.
@@ -56,8 +89,13 @@ sitting over the login prompt. The `hyprland.start` handler runs
 moment the greeter finishes (note the Lua dispatch form — the classic syntax
 would be a parse error here too).
 
-The prompt is pinned to the **32" AOC by disabling `DP-1` for the login
-screen** — so the Dell is dark for the few seconds the greeter is up.
+`/etc/greetd/hyprland.lua` carries every machine's monitor block at once. It is
+not templated (chezmoi does not manage `/etc`), and it does not need to be: a
+block for an output that is not plugged in is inert, so the laptop ignores the
+`DP-*` lines and the desktop ignores the panel's.
+
+On the desktop the prompt is pinned to the **32" AOC by disabling `DP-1` for
+the login screen** — so the Dell is dark for the few seconds the greeter is up.
 
 That is blunt on purpose. Hyprland enumerates `DP-1` first (monitor ID 0), so
 it takes focus at startup and the greeter opened there.
@@ -85,7 +123,7 @@ into `/usr/share` rather than pointed at the home directory:
 
 | asset | copied to |
 | --- | --- |
-| wallpaper | `/usr/share/backgrounds/regreet-wallpaper.jpg` |
+| wallpaper | `/usr/share/backgrounds/regreet-wallpaper` (no extension — the two machines use different formats and GdkPixbuf sniffs the content) |
 | `Posy_Cursor_Black` | `/usr/share/icons/` |
 | `YAMIS` icons | `/usr/share/icons/` |
 
@@ -107,7 +145,7 @@ below. `vt = 1` in `config.toml` puts the greeter on the first VT, and
 Recovery from there:
 
 ```bash
-sudo systemctl disable greetd && sudo systemctl enable sddm && sudo reboot
+sudo systemctl disable greetd && sudo systemctl enable plasmalogin && sudo reboot
 ```
 
 ### Logging in
@@ -128,6 +166,8 @@ Hyprland 0.56 uses a Lua config. It is split by topic instead of living in one
 | file | what's in it |
 | --- | --- |
 | `hypr/hyprland.lua` | entry point, just `require`s the rest |
+| `hypr/host.lua` | which machine this is (generated from `host.lua.tmpl`) |
+| `hypr/hosts/<host>/` | the per-machine half of the files below |
 | `hypr/colors.lua` | Catppuccin Mocha palette |
 | `hypr/apps.lua` | default terminal / browser / launcher / wallpaper |
 | `hypr/monitors.lua` | resolution, refresh rate, scaling, placement |
@@ -137,6 +177,7 @@ Hyprland 0.56 uses a Lua config. It is split by topic instead of living in one
 | `hypr/binds.lua` | keybindings |
 | `hypr/rules.lua` | window / workspace / layer rules |
 | `hypr/autostart.lua` | what starts with the session |
+| `hypr/launch.lua` | the `uwsm app` helpers autostart uses |
 
 `hyprlock.conf` and `hypridle.conf` sit in the same folder but are **hyprlang**,
 not Lua — they belong to separate programs that kept the old format.
@@ -157,6 +198,8 @@ The authoritative Lua API for the installed version is
 
 ### Monitors
 
+Desktop (`hosts/desktop/monitors.lua`):
+
 | output | monitor | mode | scale | position |
 | --- | --- | --- | --- | --- |
 | `DP-2` | AOC U32G4, 32" | 3840x2160@160 | 1.25 | left, primary |
@@ -169,6 +212,24 @@ for that reason — don't "simplify" them back.
 Scales are chosen so text is the same physical size on both (the 27" is denser)
 and so both divide 3840 evenly. Workspaces 1–5 are pinned to the AOC, 6–10 to
 the Dell.
+
+Laptop (`hosts/LAPTOP-ON9AU/monitors.lua`):
+
+| output | monitor | mode | scale | position |
+| --- | --- | --- | --- | --- |
+| `desc:Samsung…` | built-in 16" panel | 3840x2400@120 | 2 | `0x0` |
+
+Matched **by EDID description, not by connector name.** The panel comes up as
+`eDP-1` or `eDP-2` depending on the boot: `simpledrm` holds a DRM minor from
+the EFI framebuffer until a real driver displaces it, and which of i915/nvidia
+lands where depends on init timing — the same hardware answered to `eDP-2` on
+kernel 7.1.6 and `eDP-1` on 7.1.8. Get the description string from
+`hyprctl monitors all`.
+
+Scale is an integer 2 (1920x1200 logical) — at ~283 DPI there is no second
+screen to match physical text size against, so there is no reason to take the
+fractional-scaling blur. Five workspaces are persistent instead of ten; the
+other five still exist on demand.
 
 ### Keys
 
@@ -186,7 +247,7 @@ the Dell.
 | `SUPER` + `Ctrl` + `hjkl` | resize window |
 | `SUPER` + `1`–`0` | switch workspace |
 | `SUPER` + `Shift` + `1`–`0` | send window to workspace |
-| `SUPER` + `,` / `.` | focus left / right monitor |
+| `SUPER` + `,` / `.` | focus left / right monitor (**desktop only**) |
 | `SUPER` + `V` | toggle floating |
 | `SUPER` + `F` / `Shift` + `F` | fullscreen / maximize |
 | `SUPER` + `T` | flip split direction |
@@ -196,6 +257,20 @@ the Dell.
 | `SUPER` + `Escape` | lock |
 | `SUPER` + `Shift` + `M` | power menu (lock / log out / suspend / reboot / shut down) |
 | `Print` / `Shift`+`Print` / `Alt`+`Print` | screenshot region / monitor / window |
+
+Laptop-only, from `hosts/LAPTOP-ON9AU/binds.lua`:
+
+| bind | does |
+| --- | --- |
+| `XF86MonBrightnessUp` / `Down` | panel backlight, 5% steps |
+| `XF86KbdBrightnessUp` / `Down` | keyboard backlight, one of three levels |
+
+Both call `brightnessctl` with an explicit `-d`. That is not tidiness: this
+laptop has **two** devices in `/sys/class/backlight` — `intel_backlight` (the
+panel) and `nvidia_0` (the discrete GPU, which has no display wired to it) —
+and `brightnessctl` with no `-d` picks `nvidia_0`, reports a plausible
+percentage and changes nothing you can see. The waybar `backlight` module has
+the same trap and the same fix.
 
 These follow i3/sway convention, which is **not** what Hyprland ships:
 upstream puts the terminal on `SUPER`+`Q` and close on `SUPER`+`C`. Lock is on
@@ -292,15 +367,18 @@ pgrep -af /usr/bin/fcitx5          # should show --disable=notificationitem
 
 ### What starts with the session
 
-Defined in `hypr/autostart.lua`, not XDG autostart:
+Defined in `hypr/autostart.lua`, not XDG autostart. The daemons — waybar,
+swaync, hypridle, the polkit agent, the two cliphist watchers, the wallpaper —
+are the same everywhere; the applications are per-machine and live in
+`hosts/<host>/autostart.lua`:
 
-| app | lands on |
-| --- | --- |
-| kitty | 1 |
-| firefox | 2 |
-| discord | 6 |
-| spotify | 7 |
-| steam | tray only (`-silent`, no window) |
+| app | desktop | laptop |
+| --- | --- | --- |
+| kitty | 1 | 1 |
+| firefox | 2 | 2 |
+| discord | 6 | — |
+| spotify | 7 | 5 |
+| steam | tray only (`-silent`) | — (not installed) |
 
 Placement uses the per-launch rule argument to `hl.exec_cmd`, **not** a
 `window_rule` matching on class. A class rule would drag *every* future window
@@ -323,16 +401,82 @@ Log out runs **`uwsm stop`**, not `hyprctl dispatch exit`. The session is a
 systemd unit under uwsm, so killing just the compositor leaves the rest of the
 user session units running.
 
+### Idle, locking and suspend
+
+`hypr/hypridle.conf`, one file for both machines:
+
+| after | happens |
+| --- | --- |
+| 2m30s | backlight dims to 10% (saved and restored, so it comes back where you left it) |
+| 5m00s | `loginctl lock-session` → hyprlock |
+| 5m30s | screen off (DPMS) |
+| 15m00s | suspend — **on battery only** |
+
+hypridle has no idea what host it is on, so "laptop only" is expressed as a
+condition on the command instead. The suspend listener uses hypridle's own
+`condition_cmd`, which runs at the timeout and fires the listener only if it
+exits 0:
+
+```
+condition_cmd = grep -q '^0$' /sys/class/power_supply/AC/online
+```
+
+That is false whenever the charger is in, and on a desktop it is false always —
+which preserves the desktop's original rule of never suspending, because it
+runs docker and tailscale and sleeping drops both. The dim listener is
+self-limiting in the same way: a machine with no backlight device just fails
+the `brightnessctl` call harmlessly.
+
+**Lid close is not hypridle.** That is `HandleLidSwitch` in
+`/etc/systemd/logind.conf`, which chezmoi does not manage.
+
+### Hybrid graphics (laptop)
+
+The laptop has an Intel Arc 140T iGPU and an NVIDIA RTX PRO 2000. **Every
+display connector is wired to the Intel side** — the panel, HDMI and USB-C —
+and the NVIDIA card has no outputs at all; it exists for render offload.
+
+`uwsm/env` therefore pins the compositor to the iGPU:
+
+```sh
+export AQ_DRM_DEVICES=/dev/dri/by-path/pci-0000:00:02.0-card
+```
+
+That has to be set before the compositor starts, so it belongs in `uwsm/env`
+and not in `hypr/env.lua` — by the time `hl.env()` runs, aquamarine has already
+chosen its devices. It is also the whole reason that file is a chezmoi
+template: the same line on a machine without that PCI device would leave the
+compositor with no card to open.
+
+Note the `by-path` symlink rather than `/dev/dri/card0`. Which minor each
+driver gets is decided by init timing here and has already changed across one
+kernel update; the PCI address does not move.
+
+With only the iGPU opened, the NVIDIA card can runtime-suspend to D3cold for
+the whole session instead of idling:
+
+```bash
+cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_status   # -> suspended
+```
+
+Under KDE this reads `active` regardless, because KWin opens both cards. Use
+`prime-run <program>` for anything that actually wants the NVIDIA card.
+
+**Do not** add `GBM_BACKEND` or `__GLX_VENDOR_LIBRARY_NAME`. Those configure
+the opposite arrangement — NVIDIA driving the display — and would break this
+one.
+
 ### HiDPI and XWayland
 
-Wayland-native apps handle the 1.25/1.5 scaling themselves. X11 apps cannot, so
-`hypr/xwayland.lua` sets `force_zero_scaling`: they get the real 3840x2160 and
-render sharp, instead of drawing at logical size and being upscaled into a
-blurry mess.
+Wayland-native apps handle scaling themselves (1.25/1.5 on the desktop, 2 on
+the laptop). X11 apps cannot, so `hypr/xwayland.lua` sets `force_zero_scaling`:
+they get the panel's real pixel size and render sharp, instead of drawing at
+logical size and being upscaled into a blurry mess.
 
 The catch is that an X11 app then draws at 1:1 and looks small unless it scales
 itself, so those need handling one at a time — Steam via
-`STEAM_FORCE_DESKTOPUI_SCALING` in `uwsm/env`.
+`STEAM_FORCE_DESKTOPUI_SCALING` in `uwsm/env`, which is set per machine to
+match that machine's scale.
 
 The better fix is always to get the app off XWayland entirely. Spotify was the
 easy win: `spotify-launcher.conf` passes it Ozone flags so it runs native

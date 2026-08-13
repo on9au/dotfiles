@@ -9,9 +9,13 @@
 # cursor or no background, that is the cause.
 
 [background]
-path = "/usr/share/backgrounds/regreet-wallpaper.jpg"
-# Fill the screen, cropping rather than stretching -- the wallpaper is
-# 3840x2160 and the panels are 16:9, so nothing is actually cropped.
+# No extension: install.sh stages whatever format that machine's wallpaper is
+# (PNG on the laptop, JPEG on the desktop) under this one name, and GdkPixbuf
+# identifies it by content rather than by suffix.
+path = "/usr/share/backgrounds/regreet-wallpaper"
+# Fill the screen, cropping rather than stretching. install.sh stages a
+# wallpaper matching the shape of the machine it runs on -- 16:9 on the
+# desktop, 16:10 on the laptop -- so in practice nothing is cropped either.
 fit = "Cover"
 
 [GTK]

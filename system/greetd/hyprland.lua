@@ -8,13 +8,34 @@
 -- extends across every output, which built one ~7680px space across both 4K
 -- panels and put the prompt across the bezel seam.
 --
--- Keep the monitor block in sync with ~/.config/hypr/monitors.lua.
+-- Keep the monitor blocks in sync with ~/.config/hypr/hosts/<host>/monitors.lua.
+--
+-- ONE FILE, TWO MACHINES. Unlike the session config, this one is not templated
+-- by chezmoi: it lives in /etc, which chezmoi does not manage, and gets there
+-- through install.sh. It does not need to be templated, because a monitor
+-- block for an output that is not connected is simply inert -- so every
+-- machine's block can sit here at once and only the matching one takes effect.
 
 ------------------
 ---- MONITORS ----
 ------------------
 
--- AOC U32G4, 32" -- the prompt goes here.
+-- LAPTOP-ON9AU -- the built-in 16" panel.
+--
+-- Matched by EDID description, not by connector name: the panel comes up as
+-- eDP-1 or eDP-2 depending on which DRM minor i915 gets on that boot. The same
+-- unverified-string caveat as the session config applies -- read the real
+-- description with `hyprctl monitors all` in a Hyprland session and paste it
+-- into both places. If it is wrong here, the catch-all at the bottom still
+-- lights the panel, just at whatever scale Hyprland picks for it.
+hl.monitor({
+    output   = "desc:Samsung Display Corp",
+    mode     = "3840x2400@120",
+    position = "0x0",
+    scale    = 2,
+})
+
+-- AOC U32G4, 32" -- on the desktop, the prompt goes here.
 hl.monitor({
     output   = "DP-2",
     mode     = "3840x2160@160",
@@ -22,7 +43,8 @@ hl.monitor({
     scale    = 1.25,
 })
 
--- Dell U2725QE, 27" -- switched off for the login screen.
+-- Dell U2725QE, 27" -- switched off for the login screen. Desktop only; there
+-- is no DP-1 on the laptop, so this block does nothing there.
 --
 -- This is what actually pins the prompt to the 32", and it is deliberate
 -- rather than tidy. Hyprland enumerates DP-1 first (monitor ID 0), so it takes
@@ -86,8 +108,10 @@ hl.config({
         -- for a greeter, but Hyprland warns about it on screen.
         disable_xdg_env_checks = true,
 
-        -- Both panels run fractional scaling; without this Hyprland puts a
-        -- notice about it over the login prompt.
+        -- The desktop's panels run fractional scaling; without this Hyprland
+        -- puts a notice about it over the login prompt. The laptop is on an
+        -- integer scale and would not raise it, but the option is harmless
+        -- there and this file is shared.
         disable_scale_notification = true,
 
         -- No hyprland-qtutils on the greeter, and no watchdog nag.

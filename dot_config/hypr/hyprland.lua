@@ -16,6 +16,12 @@
 --   binds.lua      keybindings
 --   rules.lua      window and workspace rules
 --   autostart.lua  processes started with the session
+--   launch.lua     helpers autostart uses to start things under systemd
+--
+-- Two machines share this config -- a two-monitor desktop and a laptop -- and
+-- the handful of settings that genuinely differ between them live in
+-- hosts/<host>/, one file per topic. host.lua says which directory this
+-- machine uses and is the only file chezmoi templates. Start there.
 --
 -- Reference:
 --   Wiki      https://wiki.hypr.land/

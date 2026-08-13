@@ -115,7 +115,8 @@ hl.bind(mod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 ----------------------
 
 -- SUPER + 1..0 focuses, SUPER + SHIFT + 1..0 throws the window there.
--- Workspaces 1-5 live on the AOC and 6-10 on the Dell; see rules.lua.
+-- All ten exist on every machine; which of them are persistent, and which
+-- screen they live on, is per-host (see rules.lua).
 for i = 1, 10 do
     local key = i % 10 -- workspace 10 sits on the 0 key
 
@@ -135,16 +136,6 @@ hl.bind(mod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" 
 -- Scroll the mouse wheel over any empty space to change workspace.
 hl.bind(mod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(mod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
-
---------------------
----- MONITORS   ----
---------------------
-
--- comma = left screen (AOC), period = right screen (Dell).
-hl.bind(mod .. " + comma",          hl.dsp.focus({ monitor = "DP-2" }),       { desc = "focus left monitor" })
-hl.bind(mod .. " + period",         hl.dsp.focus({ monitor = "DP-1" }),       { desc = "focus right monitor" })
-hl.bind(mod .. " + SHIFT + comma",  hl.dsp.window.move({ monitor = "DP-2" }), { desc = "window to left monitor" })
-hl.bind(mod .. " + SHIFT + period", hl.dsp.window.move({ monitor = "DP-1" }), { desc = "window to right monitor" })
 
 -----------------------
 ---- SCREENSHOTS   ----
@@ -174,3 +165,11 @@ hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = tr
 hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
 hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
 hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
+
+--------------------------
+---- PER-MACHINE KEYS  ----
+--------------------------
+
+-- Hardware that only one machine has: the laptop's screen and keyboard
+-- backlight keys, the desktop's focus-a-monitor binds.
+require("host").load("binds")
