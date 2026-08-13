@@ -439,7 +439,11 @@ and the NVIDIA card has no outputs at all; it exists for render offload.
 `uwsm/env` therefore pins the compositor to the iGPU:
 
 ```sh
-export AQ_DRM_DEVICES=/dev/dri/by-path/pci-0000:00:02.0-card
+_igpu=$(readlink -f /dev/dri/by-path/pci-0000:00:02.0-card 2>/dev/null || true)
+if [ -c "$_igpu" ]; then
+    export AQ_DRM_DEVICES="$_igpu"
+fi
+unset _igpu
 ```
 
 That has to be set before the compositor starts, so it belongs in `uwsm/env`
@@ -448,9 +452,29 @@ chosen its devices. It is also the whole reason that file is a chezmoi
 template: the same line on a machine without that PCI device would leave the
 compositor with no card to open.
 
-Note the `by-path` symlink rather than `/dev/dri/card0`. Which minor each
-driver gets is decided by init timing here and has already changed across one
-kernel update; the PCI address does not move.
+**Do not write the `by-path` symlink into that variable directly.** It looks
+like the obvious thing to do — the PCI address is the stable name, and the
+`cardN` minors move between boots here — but `AQ_DRM_DEVICES` is a
+**colon-separated list**, and every PCI address contains colons. The symlink is
+not read as one device, it is split into three that do not exist:
+
+```
+drm: Explicit device list /dev/dri/by-path/pci-0000:00:02.0-card
+ERR drm: Failed to canonicalize path /dev/dri/by-path/pci-0000
+ERR drm: Failed to canonicalize path 00
+ERR drm: Failed to canonicalize path 02.0-card
+ERR drm: Found no gpus to use, cannot continue
+```
+
+Hyprland then aborts in `CBackend::create()` before reading any monitor config,
+and the session drops straight back to the greeter — with `--verify-config`
+still reporting the config as fine, because the config *is* fine. No escaping
+helps; the colon is the delimiter. Resolving the symlink at login gets both
+properties: the lookup is by PCI address and happens fresh each session, and
+what aquamarine receives is a single colon-free path.
+
+The `if [ -c ... ]` guard matters too: an empty `AQ_DRM_DEVICES` means "use no
+devices", not "use all of them", and fails exactly the same way.
 
 With only the iGPU opened, the NVIDIA card can runtime-suspend to D3cold for
 the whole session instead of idling:

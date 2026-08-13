@@ -23,5 +23,9 @@ NaturalScroll=true
 PointerAccelerationProfile=1
 
 [Mouse]
+# Written by KDE itself, not by hand -- the X11 counterpart of the flat
+# acceleration profile above. Kept so that applying this file does not delete
+# a setting Plasma put there.
+X11LibInputXAccelProfileFlat=true
 cursorSize=32
 cursorTheme=Posy_Cursor_Black
