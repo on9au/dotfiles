@@ -13,10 +13,14 @@ local launch = require("launch")
 launch.app_on(apps.terminal, 1)
 launch.app_on(apps.browser, 2)
 
--- Spotify was on workspace 7 when 6-10 lived on a second screen. With five
--- persistent workspaces on one panel it goes to the last of them: still out of
--- the way of the terminal and the browser, but one key away and visible in the
--- bar.
+-- Spotify sits on 5, the last of the persistent workspaces: out of the way of
+-- the terminal and the browser, but one key away and visible in the bar.
+--
+-- Not moved to the panel now that 6-10 live there (rules.lua). All three of
+-- these want to be somewhere that exists undocked as well as docked, and
+-- workspaces 1-5 fall back to the panel on their own when the ultrawide is not
+-- plugged in -- whereas anything parked on 6-10 would vanish under the lid in
+-- clamshell.
 launch.app_on("spotify-launcher", 5)
 
 -- Not started here, and deliberately:

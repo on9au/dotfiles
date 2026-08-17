@@ -94,8 +94,21 @@ would be a parse error here too).
 
 `/etc/greetd/hyprland.lua` carries every machine's monitor block at once. It is
 not templated (chezmoi does not manage `/etc`), and it does not need to be: a
-block for an output that is not plugged in is inert, so the laptop ignores the
-`DP-*` lines and the desktop ignores the panel's.
+block for an output that is not plugged in is inert, so the desktop ignores the
+panel's block and the laptop ignores the AOC's.
+
+The `DP-*` lines are the exception, and they are why **the ultrawide's block
+has to stay above them.** Rules match in declaration order, first hit wins.
+The laptop's external display arrives over USB-C on some unpredictable `DP-*`
+connector, and `DP-1` — which this file *disables* to pin the desktop's prompt
+to the AOC — is as likely as any. Claiming it by description first is what
+stops the greeter blanking it. The old comment there claimed "there is no DP-1
+on the laptop"; that stopped being true the day the laptop got a monitor.
+
+On the laptop both screens are left lit at the greeter, so which one the prompt
+opens on is down to enumeration order. Disabling the panel the way `DP-1` is
+disabled would also disable it when the laptop is on its own, leaving nothing
+to log in on.
 
 On the desktop the prompt is pinned to the **32" AOC by disabling `DP-1` for
 the login screen** — so the Dell is dark for the few seconds the greeter is up.
@@ -221,18 +234,79 @@ Laptop (`hosts/LAPTOP-ON9AU/monitors.lua`):
 | output | monitor | mode | scale | position |
 | --- | --- | --- | --- | --- |
 | `desc:Samsung…` | built-in 16" panel | 3840x2400@120 | 2 | `0x0` |
+| `desc:Dell Inc. DELL U40` | Dell U4025QW, 40" ultrawide | `maxwidth` → 5120x2160@120 | 1.25 | `-1088x-1728` |
 
-Matched **by EDID description, not by connector name.** The panel comes up as
-`eDP-1` or `eDP-2` depending on the boot: `simpledrm` holds a DRM minor from
+Both matched **by EDID description, not by connector name.** The panel comes up
+as `eDP-1` or `eDP-2` depending on the boot: `simpledrm` holds a DRM minor from
 the EFI framebuffer until a real driver displaces it, and which of i915/nvidia
 lands where depends on init timing — the same hardware answered to `eDP-2` on
-kernel 7.1.6 and `eDP-1` on 7.1.8. Get the description string from
+kernel 7.1.6 and `eDP-1` on 7.1.8. The ultrawide arrives over USB-C and gets
+whichever `DP-*` is going. Get the description strings from
 `hyprctl monitors all`.
 
-Scale is an integer 2 (1920x1200 logical) — at ~283 DPI there is no second
-screen to match physical text size against, so there is no reason to take the
-fractional-scaling blur. Five workspaces are persistent instead of ten; the
-other five still exist on demand.
+Panel scale is an integer 2 (1920x1200 logical) — at ~283 DPI, taking
+fractional-scaling blur would buy nothing. The ultrawide is ~140 DPI, the same
+density as the desktop's 32" AOC, so it gets the same 1.25 → 4096x1728, both
+axes exact. It sits centred *above* the panel at a negative offset rather than
+the panel being moved, so pulling the cable changes nothing about the undocked
+layout.
+
+**`desc:` is a prefix match**, not a glob. `desc:Dell Inc. DELL U40` therefore
+covers the whole Dell 40" 5K2K family (U4021QW / U4023QW / U4025QW) in one
+block — they are all 5120x2160 across ~39.7", so one scale fits all of them.
+
+#### Why `maxwidth` and not `highres`
+
+These are shared work monitors: some of the 40" ultrawides here cap at 60Hz and
+some do 120Hz, so a hardcoded mode is a modeset failure on half of them. Of the
+three keywords, only `maxwidth` sorts this panel shape correctly:
+
+| keyword | comparator | result |
+| --- | --- | --- |
+| `highres` | `a.x > b.x && a.y > b.y` | **broken here.** 5120x2160 vs 3840x2160 fails on `2160 > 2160`, and the equal-resolution tiebreak also needs `x` within 1px. Every 2160-tall mode is mutually incomparable, and the sort is unstable → arbitrary width. |
+| `highrr` | refresh first, resolution only breaks an exact tie | one fleet monitor offering 1920x1080@144 wins outright over 5120x2160@120 ([#9209](https://github.com/hyprwm/Hyprland/issues/9209)) |
+| `maxwidth` | `a.x > b.x`, ties by higher refresh | widest mode, then fastest at that width. What we want. |
+
+Hyprland keeps the best 3 modes **plus** the preferred one as a fallback chain,
+so a 60Hz sibling lands on 5120x2160@60 by itself and a failed modeset walks
+120 → 100 → 75 → 60 rather than going dark.
+
+That fallback matters: 5120x2160@120 is ~1485 MHz of pixel clock, ~35.6 Gbit/s,
+which is more than DP 1.4 HBR3 carries (25.92) — **120Hz only exists with DSC.**
+It works over this cable under Windows, so the link and the Arc iGPU can both
+do it, but it is the first thing to suspect if the session comes up at 60. Note
+also that the monitor's own USB-C setting can halve the lane count to keep USB 3
+data speed.
+
+Workspaces **1–5 are pinned to the ultrawide, 6–10 to the panel**, same split as
+the desktop. Only 1–5 are persistent — ten permanently-lit numbers is most of a
+16" waybar gone to workspaces nobody opened, and undocked the 16" bar is the
+only bar there is. A workspace bound to an absent monitor opens on whatever is
+present, so undocked you get all ten on the panel and in clamshell all ten on
+the ultrawide, with no extra configuration.
+
+#### Clamshell
+
+Closing the lid with the external display attached disables the built-in panel;
+opening it brings it back. Closing it with nothing else attached suspends
+instead. Two halves:
+
+| where | what it does |
+| --- | --- |
+| `hypr/hosts/LAPTOP-ON9AU/binds.lua` | `switch:on:Lid Switch` → disable the panel, but only if `#hl.get_monitors() > 1` |
+| `system/logind/lid.conf` | `HandleLidSwitchDocked=ignore` so logind does not suspend out from under it |
+
+logind counts "docked" as *in a dock **or** more than one display connected*,
+which is the same condition as the Hyprland-side guard — the two agree by
+construction. The other two `HandleLidSwitch*` settings are left at `suspend`.
+
+Calling `hl.monitor()` at runtime **merges** into the existing rule for that
+output name and schedules a re-apply, so flipping `disabled` keeps the panel's
+mode/position/scale — no `hyprctl` shell-out, and nothing restated.
+
+`SW_LID` reads 1 when the lid is *closed*, hence `switch:on` being the close
+event. The device name is libinput's, not guaranteed — check with
+`hyprctl devices | grep -i switch`.
 
 ### Keys
 
@@ -462,8 +536,15 @@ runs docker and tailscale and sleeping drops both. The dim listener is
 self-limiting in the same way: a machine with no backlight device just fails
 the `brightnessctl` call harmlessly.
 
-**Lid close is not hypridle.** That is `HandleLidSwitch` in
-`/etc/systemd/logind.conf`, which chezmoi does not manage.
+**Lid close is not hypridle.** It is split between logind and Hyprland — see
+**Clamshell** under *Monitors*. `/etc` is outside chezmoi, so the drop-in lives
+in this repo and is installed by hand:
+
+```bash
+# writes /etc/systemd/logind.conf.d/99-lid.conf, HUPs logind, and prints back
+# what logind actually resolved. Safe to re-run.
+sudo sh system/logind/install.sh
+```
 
 ### Hybrid graphics (laptop)
 

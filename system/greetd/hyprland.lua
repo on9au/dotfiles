@@ -35,6 +35,38 @@ hl.monitor({
     scale    = 2,
 })
 
+-- Dell U4025QW and the rest of the 40" ultrawides at work -- laptop only.
+--
+-- THIS BLOCK MUST STAY ABOVE THE DP-* ONES. Rules are matched in the order
+-- they are declared and the first hit wins, so claiming the ultrawide by
+-- description here is what stops the `DP-1, disabled` line below from
+-- swallowing it. On the laptop this monitor arrives over USB-C and lands on
+-- some DP-* connector -- which one is not predictable, and DP-1 is a very
+-- plausible answer. Without this block, docking the laptop and logging in
+-- would blank the external screen, or in clamshell blank everything.
+--
+-- Inert on the desktop: the U2725QE there does not match a "U40" prefix.
+--
+-- Keep in step with hypr/hosts/LAPTOP-ON9AU/monitors.lua, including the
+-- `maxwidth` choice -- some of these monitors are 60Hz and some are 120Hz, and
+-- highres/highrr both mis-sort this panel shape. The reasoning is written out
+-- in full there, as is the -1088x-1728 (centred above the panel, which keeps
+-- the origin). The position matters here too: the panel block above is a hard
+-- `0x0`, so anything else placed at 0x0 overlaps it and Hyprland warns.
+--
+-- Unlike the desktop, the laptop's greeter is left with BOTH screens lit,
+-- because the alternative -- disabling the panel the way DP-1 is disabled
+-- below -- would also disable it when the laptop is on its own, and there
+-- would be nothing to log in on. Which of the two the prompt opens on is
+-- therefore down to enumeration order and may vary. Fixing that properly is
+-- the same unsolved focus problem described on the DP-1 block.
+hl.monitor({
+    output   = "desc:Dell Inc. DELL U40",
+    mode     = "maxwidth",
+    position = "-1088x-1728",
+    scale    = 1.25,
+})
+
 -- AOC U32G4, 32" -- on the desktop, the prompt goes here.
 hl.monitor({
     output   = "DP-2",
@@ -43,8 +75,16 @@ hl.monitor({
     scale    = 1.25,
 })
 
--- Dell U2725QE, 27" -- switched off for the login screen. Desktop only; there
--- is no DP-1 on the laptop, so this block does nothing there.
+-- Dell U2725QE, 27" -- switched off for the login screen.
+--
+-- Meant for the desktop only. This used to say "there is no DP-1 on the
+-- laptop, so this block does nothing there", which stopped being true the
+-- moment the laptop got an external display: a USB-C monitor lands on a DP-*
+-- connector and DP-1 is as likely as any. The ultrawide is claimed by
+-- description further up, before this rule is reached, which is what keeps it
+-- safe -- but a DIFFERENT display plugged into the laptop would still be
+-- blanked at the greeter by this line. Give it its own desc: block above if
+-- that ever happens.
 --
 -- This is what actually pins the prompt to the 32", and it is deliberate
 -- rather than tidy. Hyprland enumerates DP-1 first (monitor ID 0), so it takes
