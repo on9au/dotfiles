@@ -25,6 +25,7 @@
     "tray",
     "custom/fcitx5",
     "idle_inhibitor",
+    "custom/nolock",
     "cpu",
     "memory",
     "temperature",
@@ -200,17 +201,43 @@
       "power-saver": "󰾆"
     }
   },
-  // Click to hold the session awake -- stops hypridle dimming, locking and
-  // suspending under a long build or a film. The coffee cup is lit while the
-  // inhibitor is on.
+  // Left-click to hold the session awake -- stops hypridle dimming, locking
+  // and suspending under a long build or a film. The coffee cup is lit while
+  // the inhibitor is on.
+  //
+  // Right-click is the weaker version of the same idea: leave every idle
+  // timer running but skip the lock, for stepping away from a machine you are
+  // not worried about. See ~/.local/bin/nolock. There is deliberately no
+  // second button for it -- the padlock in custom/nolock below draws only
+  // while it is on, so the bar stays as it was the rest of the time.
+  //
+  // Right-click reaching a command at all depends on waybar passing button 3
+  // through to ALabel::handleToggle, which it does as long as
+  // "dynamic-timeouts" is off -- with that enabled, button 3 is taken by the
+  // module itself to clear the inhibitor.
   "idle_inhibitor": {
     "format": "{icon}",
     "format-icons": {
       "activated": "󰅶",
       "deactivated": "󰾪"
     },
-    "tooltip-format-activated": "idle inhibited",
-    "tooltip-format-deactivated": "idle not inhibited"
+    "tooltip-format-activated": "idle inhibited\nright-click: disable the idle lock only",
+    "tooltip-format-deactivated": "idle not inhibited\nright-click: disable the idle lock only",
+    "on-click-right": "$HOME/.local/bin/nolock toggle"
+  },
+  // The open padlock, shown only while the idle lock is off. The script emits
+  // nothing when the flag is clear and waybar hides a custom module with empty
+  // text, so this occupies no space in the normal case.
+  //
+  // "once" plus "signal" rather than an interval: nothing changes the flag
+  // except the script itself, and it sends RTMIN+8 when it does.
+  "custom/nolock": {
+    "format": "{}",
+    "return-type": "json",
+    "exec": "$HOME/.local/bin/nolock status",
+    "interval": "once",
+    "signal": 8,
+    "on-click": "$HOME/.local/bin/nolock off"
   },
   "tray": {
     "icon-size": 18,

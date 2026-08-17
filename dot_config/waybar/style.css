@@ -55,6 +55,7 @@ window#waybar {
 #power-profiles-daemon,
 #battery,
 #idle_inhibitor,
+#custom-nolock,
 #tray,
 #custom-fcitx5,
 #custom-notification,
@@ -203,6 +204,14 @@ window#waybar.empty .modules-left #window {
 
 #idle_inhibitor.activated {
     color: @yellow;
+}
+
+/* Only drawn while the idle lock is off (right-click on the cup). Red rather
+ * than yellow because it is the one of the two states that lowers a security
+ * setting, and it should not be mistaken for the caffeine cup at a glance. */
+#custom-nolock {
+    color: @red;
+    padding-left: 0;
 }
 
 #custom-notification {
