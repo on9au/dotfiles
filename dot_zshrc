@@ -54,7 +54,7 @@ if [ -d "$FNM_PATH" ]; then
   eval "$(fnm env --shell zsh)"
 fi
 
-export PATH="$PATH:$(go env GOBIN):$(go env GOPATH)/bin"
+export PATH="$PATH:$(go env GOBIN):$(go env GOPATH)/bin:$HOME/.local/bin"
 
 # pnpm
 export PNPM_HOME="/home/djpro/.local/share/pnpm"
