@@ -50,9 +50,12 @@ hl.monitor({
 -- Keep in step with hypr/hosts/LAPTOP-ON9AU/monitors.lua, including the
 -- `maxwidth` choice -- some of these monitors are 60Hz and some are 120Hz, and
 -- highres/highrr both mis-sort this panel shape. The reasoning is written out
--- in full there, as is the -1088x-1728 (centred above the panel, which keeps
--- the origin). The position matters here too: the panel block above is a hard
--- `0x0`, so anything else placed at 0x0 overlaps it and Hyprland warns.
+-- in full there, as is the 1920x-528: to the right of the panel with their
+-- bottom edges flush, which is where the laptop sits on the desk, and which
+-- leaves the panel on the origin. The position matters here too: the panel
+-- block above is a hard `0x0` spanning 1920x1200, so it is the x = 1920 that
+-- keeps these two apart -- a block landing inside that rectangle would overlap
+-- it and Hyprland would warn.
 --
 -- Unlike the desktop, the laptop's greeter is left with BOTH screens lit,
 -- because the alternative -- disabling the panel the way DP-1 is disabled
@@ -63,7 +66,7 @@ hl.monitor({
 hl.monitor({
     output   = "desc:Dell Inc. DELL U40",
     mode     = "maxwidth",
-    position = "-1088x-1728",
+    position = "1920x-528",
     scale    = 1.25,
 })
 

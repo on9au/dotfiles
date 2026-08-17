@@ -234,7 +234,7 @@ Laptop (`hosts/LAPTOP-ON9AU/monitors.lua`):
 | output | monitor | mode | scale | position |
 | --- | --- | --- | --- | --- |
 | `desc:Samsung…` | built-in 16" panel | 3840x2400@120 | 2 | `0x0` |
-| `desc:Dell Inc. DELL U40` | Dell U4025QW, 40" ultrawide | `maxwidth` → 5120x2160@120 | 1.25 | `-1088x-1728` |
+| `desc:Dell Inc. DELL U40` | Dell U4025QW, 40" ultrawide | `maxwidth` → 5120x2160@120 | 1.25 | `1920x-528` |
 
 Both matched **by EDID description, not by connector name.** The panel comes up
 as `eDP-1` or `eDP-2` depending on the boot: `simpledrm` holds a DRM minor from
@@ -247,9 +247,17 @@ whichever `DP-*` is going. Get the description strings from
 Panel scale is an integer 2 (1920x1200 logical) — at ~283 DPI, taking
 fractional-scaling blur would buy nothing. The ultrawide is ~140 DPI, the same
 density as the desktop's 32" AOC, so it gets the same 1.25 → 4096x1728, both
-axes exact. It sits centred *above* the panel at a negative offset rather than
-the panel being moved, so pulling the cable changes nothing about the undocked
-layout.
+axes exact. The panel keeps the origin and the ultrawide is offset around it
+rather than the other way round, so pulling the cable changes nothing about the
+undocked layout.
+
+`1920x-528` places it **to the right of the panel with their bottom edges
+flush**, matching the desk: the laptop sits beside the monitor on its left, and
+low, because a laptop screen starts at desk level. `x = 1920` is the panel's
+logical width, so the two touch with no gap; `y = 1200 - 1728 = -528` lines the
+bottoms up. Bottom-flush is deliberate — it makes the panel's y range a subset
+of the ultrawide's, so every row of the panel has somewhere to go and the
+cursor never sticks at the seam.
 
 **`desc:` is a prefix match**, not a glob. `desc:Dell Inc. DELL U40` therefore
 covers the whole Dell 40" 5K2K family (U4021QW / U4023QW / U4025QW) in one

@@ -1,23 +1,31 @@
 -- Monitors -- LAPTOP-ON9AU (Dell Pro Max 16 Premium), docked or on its own.
 --
--- Physical layout when docked:
+-- Physical layout when docked. The laptop sits on the desk to the LEFT of the
+-- ultrawide -- beside it, not beneath it -- and low, because a laptop screen
+-- starts at desk level while the monitor is up on a stand. So the two are
+-- side by side with their BOTTOM edges flush:
 --
---   +--------------------------------------------------------+
---   |  Dell U4025QW  40"  5120x2160 @ 120Hz                   |
---   |  scale 1.25 -> 4096x1728 logical                        |
---   +--------------------------------------------------------+
---                 +--------------------------+
---                 |  Samsung 16" 3840x2400   |
---                 |  scale 2 -> 1920x1200    |
---                 +--------------------------+
+--                        +------------------------------------------+
+--                        |  Dell U4025QW  40"                       |
+--                        |  5120x2160 @ 120Hz                       |
+--                        |  scale 1.25 -> 4096x1728 logical         |
+--                        |                                          |
+--   +--------------------+                                          |
+--   |  Samsung 16"       |                                          |
+--   |  3840x2400         |                                          |
+--   |  scale 2 ->        |                                          |
+--   |  1920x1200         |                                          |
+--   +--------------------+------------------------------------------+
 --
--- The PANEL keeps `0x0` and the ultrawide is placed above it at a negative
--- offset, rather than the other way round. That way the undocked layout is
+-- The PANEL keeps `0x0` and the ultrawide is placed to its right at a negative
+-- y, rather than the other way round. That way the undocked layout is
 -- byte-for-byte what it was before the monitor existed -- nothing moves when
 -- the cable comes out.
 --
--- Do NOT use `position = "auto-center-up"` for the ultrawide, tempting as it
--- is. Auto placement is resolved in enumeration order, and the wiki is explicit
+-- Do NOT use auto placement for the ultrawide -- `auto-right` is the tempting
+-- one now, `auto-center-up` was when this sat above the panel, and the trap is
+-- the same either way. Auto is resolved in enumeration order, and the wiki is
+-- explicit
 -- that a direction on the *first* monitor to come up does nothing and lands it
 -- at (0,0). If the ultrawide enumerates before the panel it would collide with
 -- the panel's explicit `0x0` and Hyprland would warn about overlap. Both
@@ -105,11 +113,39 @@ hl.monitor({
     vrr = 0,
 })
 
--- The ultrawide, centred above the panel.
+-- The ultrawide, to the right of the panel with their bottom edges flush.
 --
--- x = (1920 - 4096) / 2 = -1088, y = -1728 so its bottom edge meets the
--- panel's top edge at 0. Negative positions are supported and are what keeps
--- the panel on the origin.
+-- x = 1920 is the panel's logical width, so the ultrawide's left edge starts
+-- exactly where the panel's right edge ends: they touch, with no overlap and
+-- no gap. y = 1200 - 1728 = -528 puts the two bottoms on the same line at
+-- y = 1200. Negative positions are supported and are what keeps the panel on
+-- the origin.
+--
+-- WHY BOTTOM-FLUSH AND NOT CENTRED ON THE PANEL, OR MATCHED TO THE STAND:
+--
+-- Bottom-flush is the only vertical offset with no dead zone at the seam. The
+-- ultrawide spans y -528..1200 and the panel 0..1200, so the panel's range is
+-- wholly inside the ultrawide's: every row of the panel has ultrawide to its
+-- right, and the pointer crosses from anywhere on the panel without catching.
+-- Nudge the ultrawide up and the bottom strip of the panel borders nothing,
+-- which feels like the cursor sticking in a corner.
+--
+-- It is also close to the truth. The monitor is on a stand and the laptop is
+-- flat on the desk, so physically the panel's bottom sits a little BELOW the
+-- ultrawide's -- but only by the stand's clearance, and paying for that
+-- accuracy with a sticky strip along the bottom of the panel is a bad trade.
+--
+-- Note the alignment is exact only along that bottom line. The panel is 1200
+-- logical px across 223 mm of glass and the ultrawide 1728 across 392 mm, so
+-- logical y and the physical centimetre drift apart as you go up. Nothing can
+-- fix that while the two screens have different logical densities.
+--
+-- This was `0x-1728` (ultrawide directly above the panel, left edges flush)
+-- and `-1088x-1728` (above and centred) before that. Both are wrong for a
+-- laptop that lives beside the monitor rather than under it: they put the
+-- crossing on the panel's TOP edge, so reaching the big screen meant pushing
+-- the cursor up when the hardware is off to the right. Either is the value to
+-- come back to if the laptop ever goes under the monitor again.
 --
 -- WHY `maxwidth` AND NOT `highres` OR AN EXPLICIT MODE:
 --
@@ -150,7 +186,7 @@ hl.monitor({
 hl.monitor({
     output   = ULTRAWIDE,
     mode     = "maxwidth",
-    position = "-1088x-1728",
+    position = "1920x-528",
     scale    = 1.25,
 
     -- Same reasoning as the panel: the monitor advertises 48-120Hz adaptive
