@@ -42,6 +42,7 @@ GPG_TTY=$(tty)
 alias vencord='sh -c "$(curl -sS https://vencord.dev/install.sh)"'
 
 export CDGIT_ROOT="/home/djpro/Projects"
+export WINAPPS_SRC_DIR="$HOME/.local/bin/winapps-src"
 
 # allow `#` to be used in shell
 setopt interactive_comments
