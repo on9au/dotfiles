@@ -201,7 +201,35 @@ sudo reinstall-kernels     # regenerates initrd + the loader entry
 
 Revert by deleting the three parameters and re-running `reinstall-kernels`.
 
+To try a value before committing to it, there is a live per-queue knob in
+**milliseconds** that needs no reboot and reverts by itself:
+
+```bash
+echo 5000 | sudo tee /sys/block/nvme0n1/queue/io_timeout   # default 30000
+```
+
+(The `nvme_core.io_timeout` module param is mode `0644`, but writing it only
+seeds `rq_timeout` at queue creation — it will not move the running queue. Use
+the block-queue path above.)
+
 ### Looks like a fix, isn't
+
+**`nvme_core.io_timeout=0`.** Not "no timeout" — **every I/O expires
+immediately.** It is a plain `uint` with no validation, and `blk_add_timer()`
+has no zero guard, so `expiry = jiffies + 0` is a deadline of *now*.
+
+The deeper mistake is the direction, though. **The timeout is the recovery
+mechanism here, not the bug.** The interrupt is gone for good, and in the
+sporadic case nothing else will ever reap that completion — `nvme_timeout()`
+polling the CQ is the only thing that unsticks it, which is exactly what
+`completion polled` reports. The freeze is the *wait for* the rescue. A genuinely
+infinite timeout would hang that I/O forever and take the filesystem with it.
+
+Shorter, never longer. And not *too* short: when the poll finds no completion
+(a real slow command — large discard, flush barrier, GC, thermal throttle) the
+driver escalates to aborting the command and then **resetting the controller**,
+which is far worse than a stall and can surface as I/O errors or a read-only
+remount. There are currently zero resets on this machine; keep it that way.
 
 **`nvme.poll_queues=N`.** The obvious move when interrupts are the problem is to
 stop using them — but Linux polled queues only serve `RWF_HIPRI` / io_uring
