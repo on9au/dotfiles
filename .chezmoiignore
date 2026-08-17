@@ -8,3 +8,7 @@
 # /etc, which chezmoi does not manage). Without this, chezmoi would try to
 # create ~/system/greetd/... since every path here is relative to $HOME.
 system
+
+# Prose, not dotfiles -- hardware/OS investigations worth not repeating. Same
+# reason as `system` above: without this, chezmoi would create ~/docs/.
+docs

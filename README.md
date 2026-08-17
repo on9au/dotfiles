@@ -4,6 +4,16 @@ its *my* dotfiels
 
 managed with chezmoi :3
 
+## Machine notes
+
+`docs/` holds write-ups of hardware and OS problems that took real work to pin
+down — prose rather than config, so it is in `.chezmoiignore` alongside
+`system/`.
+
+| doc | about |
+| --- | --- |
+| [`LAPTOP-ON9AU-nvme-vmd-stalls.md`](docs/LAPTOP-ON9AU-nvme-vmd-stalls.md) | the ~30s whole-machine freezes on the laptop: an Intel VMD erratum losing NVMe interrupts. No kernel fix exists or is planned, so **upgrading will not clear it** |
+
 ## Hyprland specific
 
 current packages used are:
