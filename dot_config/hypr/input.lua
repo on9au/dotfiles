@@ -1,7 +1,8 @@
 -- Keyboard and cursor. The pointing devices differ per machine -- a touchpad
--- on one, a wireless mouse on the other -- so those are in the host file:
+-- and a dock-attached mouse on one, a wireless mouse on the other -- so those
+-- are in the host file:
 --
---   hosts/LAPTOP-ON9AU/input.lua   touchpad
+--   hosts/LAPTOP-ON9AU/input.lua   touchpad, plus the mouse in the dock
 --   hosts/desktop/input.lua        mouse feel
 --
 -- List what libinput actually found with:  hyprctl devices
