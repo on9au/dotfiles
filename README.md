@@ -528,6 +528,70 @@ Log out runs **`uwsm stop`**, not `hyprctl dispatch exit`. The session is a
 systemd unit under uwsm, so killing just the compositor leaves the rest of the
 user session units running.
 
+### Keyring (secrets, git credentials, ssh)
+
+Nothing on this machine implemented the freedesktop **Secret Service** until
+now. gnome-keyring was never installed, and the `kwallet` left over from the
+KDE days only registers `org.kde.secretservicecompat` — a different bus name,
+which nothing outside KDE looks for. So every app that stores a password hit:
+
+```
+GDBus.Error:org.freedesktop.DBus.Error.ServiceUnknown: The name is not activatable
+```
+
+Chromium, Brave, Electron apps and `git-credential-libsecret` all ask for
+`org.freedesktop.secrets` by name; with no owner they either fall back to
+storing secrets in plaintext or fail outright. gnome-keyring rather than
+kwallet, because the rest of this session is deliberately not KDE.
+
+`/etc` is outside chezmoi, so the same pattern as greetd and logind — the
+install script is in this repo and run by hand:
+
+```bash
+# installs gnome-keyring and patches /etc/pam.d/{greetd,passwd}.
+# Safe to re-run; skips PAM files that already mention pam_gnome_keyring.
+sudo sh system/keyring/install.sh
+```
+
+**The unlock has to come from PAM.** A systemd user unit can start the daemon
+but cannot unlock the keyring without prompting for a password, and the only
+password typed at login is the one PAM already has. The usual Arch instructions
+patch `/etc/pam.d/sddm` or `/etc/pam.d/gdm`; this machine has neither —
+**greetd authenticates through `/etc/pam.d/greetd`**, so that is the file that
+gets `pam_gnome_keyring.so` (`auth` + `session … auto_start`). `/etc/pam.d/passwd`
+gets the `password … use_authtok` line too, otherwise changing the login
+password with `passwd` leaves the keyring encrypted under the old one and the
+next login shows an "Unlock Login Keyring" dialog for a password that no longer
+exists.
+
+Both lines are `optional` and `-` prefixed: a keyring that will not unlock can
+never block a login, and PAM stays quiet if gnome-keyring is uninstalled.
+
+The keyring is created on the **next full login**, not by the script — log out
+and back in rather than just unlocking hyprlock. Then:
+
+```bash
+busctl --user list | grep secrets   # org.freedesktop.secrets, owned
+secret-tool store --label=test test key   # optional round-trip check
+secret-tool lookup test key
+```
+
+The per-user half needs no root and is already set:
+
+```bash
+# git: stores HTTPS credentials in the keyring instead of asking every push.
+# The helper ships with git, in /usr/lib/git-core, so the bare name resolves.
+git config --global credential.helper libsecret
+
+# ssh: SSH_AUTH_SOCK was unset -- there was no agent at all. gnome-keyring
+# dropped its ssh component upstream; gcr-ssh-agent (from gcr-4, already
+# installed) replaced it and exports the socket into the systemd user env.
+systemctl --user enable --now gcr-ssh-agent.socket
+```
+
+`gh` is not covered by any of this — it keeps its token in
+`~/.config/gh/hosts.yml` in plaintext and has no libsecret backend.
+
 ### Idle, locking and suspend
 
 `hypr/hypridle.conf`, one file for both machines:
