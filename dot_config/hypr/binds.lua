@@ -161,6 +161,23 @@ hl.bind("Print",           hl.dsp.exec_cmd(shot .. "region"), { desc = "screensh
 hl.bind("SHIFT + Print",   hl.dsp.exec_cmd(shot .. "output"), { desc = "screenshot monitor" })
 hl.bind("ALT + Print",     hl.dsp.exec_cmd(shot .. "window"), { desc = "screenshot window" })
 
+-----------------------
+---- COLOUR PICKER ----
+-----------------------
+
+-- hyprpicker freezes the screen, gives you a zoom lens, and prints the pixel
+-- you click. The script around it puts that on the clipboard -- and so into
+-- cliphist, so picks come back under SUPER + Shift + V -- and shows a swatch.
+--
+-- C is free because close moved to Q (see the header): upstream Hyprland
+-- spends it on close, i3/sway convention does not.
+--
+-- Absolute path because ~/.local/bin is not on PATH here.
+local colorpicker = os.getenv("HOME") .. "/.local/bin/colorpicker"
+
+hl.bind(mod .. " + C",         hl.dsp.exec_cmd(colorpicker),           { desc = "pick colour (hex)" })
+hl.bind(mod .. " + SHIFT + C", hl.dsp.exec_cmd(colorpicker .. " rgb"), { desc = "pick colour (rgb)" })
+
 -----------------
 ---- MEDIA   ----
 -----------------

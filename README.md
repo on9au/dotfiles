@@ -19,7 +19,7 @@ down — prose rather than config, so it is in `.chezmoiignore` alongside
 current packages used are:
 
 ```bash
-sudo pacman -S hyprland uwsm xdg-desktop-portal-hyprland xdg-desktop-portal-kde plasma-integration fuzzel swaync hyprlock hypridle hyprpolkitagent awww hyprshot cliphist wl-clipboard wtype noto-fonts-emoji qt5-wayland qt6-wayland playerctl pavucontrol networkmanager brightnessctl power-profiles-daemon htop
+sudo pacman -S hyprland uwsm xdg-desktop-portal-hyprland xdg-desktop-portal-kde plasma-integration fuzzel swaync hyprlock hypridle hyprpolkitagent awww hyprshot hyprpicker cliphist wl-clipboard wtype noto-fonts-emoji qt5-wayland qt6-wayland playerctl pavucontrol networkmanager brightnessctl power-profiles-daemon htop
 
 # waybar from the AUR, not the repos -- see "The Lua config gotcha" below.
 # The release build cannot switch workspaces on click with a Lua config.
@@ -353,6 +353,7 @@ event. The device name is libinput's, not guaranteed — check with
 | `SUPER` + `Escape` | lock |
 | `SUPER` + `Shift` + `M` | power menu (lock / log out / suspend / reboot / shut down) |
 | `Print` / `Shift`+`Print` / `Alt`+`Print` | screenshot region / monitor / window |
+| `SUPER` + `C` / `Shift` + `C` | pick a colour on screen, as hex / rgb |
 
 Laptop-only, from `hosts/LAPTOP-ON9AU/binds.lua`:
 
@@ -517,6 +518,39 @@ First run downloads the Unicode emoji list to `~/.local/share/bemoji/`
 `~/.local/state/bemoji-history.txt` and float to the top of the list after
 that. `bemoji -D nerd` adds the Nerd Font glyphs to the same database — the
 terminal font here is a Nerd Font, so they render.
+
+### Colour picker
+
+`SUPER`+`C` picks a pixel anywhere on screen and puts it on the clipboard as
+`#rrggbb`; `SUPER`+`Shift`+`C` does the same and writes `rgb(30, 30, 46)`
+instead. The screen freezes while you aim, with a zoom lens under the cursor,
+and the value comes back as a notification with a swatch of the colour.
+
+The picking is **hyprpicker** (`pacman -S hyprpicker`, same authors as the
+compositor). `~/.local/bin/colorpicker` is the wrapper around it, and exists
+for four small reasons — hyprpicker has both `--autocopy` and `--notify` built
+in, and neither is quite right here:
+
+| | |
+| --- | --- |
+| `-b` (no-fancy) | hyprpicker otherwise wraps its output in ANSI colour escapes. Readable in a terminal; from a keybind those bytes would land on the clipboard |
+| own `wl-copy` | `--autocopy` appends a newline, so pasting into a config file also presses Enter. It would also copy hex when rgb was asked for |
+| rgb | hyprpicker emits one format per run, so the pick is always taken as hex and converted afterwards. That is also what lets the swatch exist for both binds |
+| swatch | the notification shows the colour, not just six characters of hex. Drawn with ImageMagick, with a `surface2` border so a colour near the notification's own background still has an edge. Optional — no ImageMagick, no picture, everything else still works |
+
+Picks go through `wl-copy`, so cliphist stores them and old ones come back
+under `SUPER`+`Shift`+`V`.
+
+`-l` for lowercase hex, matching `colors.lua` and the stylesheets. `-r` freezes
+the *inactive* displays too, so a hover state or a video on the other screen
+holds still while you aim.
+
+One thing to know if a pick ever looks a shade off: every external screen here
+runs a fractional scale (1.25 on the 32" and the ultrawide, 1.5 on the 27"), so
+a logical cursor position does not land on exactly one device pixel.
+`hyprpicker -t` disables fractional-scale handling and is the first flag to try
+if that shows up — add it to the `hyprpicker` line in the script. The laptop
+panel is on scale 2 and cannot be affected.
 
 ### Session management
 
