@@ -12,3 +12,58 @@ system
 # Prose, not dotfiles -- hardware/OS investigations worth not repeating. Same
 # reason as `system` above: without this, chezmoi would create ~/docs/.
 docs
+
+# ---------------------------------------------------------------------------
+# Per-OS targets.
+#
+# This repo is a Linux/Hyprland setup that now also lands on a Windows work
+# laptop (G3JC7G4, GlazeWM instead of Hyprland). Without these guards
+# `chezmoi apply` there writes zsh, tmux and twenty hypr/*.lua files into a
+# profile where nothing reads them -- and applying on Linux would create a
+# stray ~/.glzr for a window manager that does not exist.
+#
+# WSL is the third case: it wants the shell half (zsh, tmux, nvim) and none of
+# the compositor half, since the desktop is Windows. Detected on the kernel
+# release string rather than a hostname, so it holds for any distro.
+# ---------------------------------------------------------------------------
+
+{{ if eq .chezmoi.os "windows" }}
+.config/autostart
+.config/fuzzel
+.config/hypr
+.config/kcminputrc
+.config/kitty
+.config/mimeapps.list
+.config/qt6ct
+.config/spotify-launcher.conf
+.config/swaync
+.config/uwsm
+.config/waybar
+.config/winapps
+.config/xdg-desktop-portal
+.local/bin
+.local/share/dbus-1
+.tmux
+.tmux.conf
+.zsh_plugins.txt
+.zshenv
+.zshrc
+reload-hyprland.sh
+{{ end }}
+
+{{ if ne .chezmoi.os "windows" }}
+.glzr
+{{ end }}
+
+{{ if eq .chezmoi.os "linux" }}
+{{   if contains "microsoft" (lower .chezmoi.kernel.osrelease) }}
+.config/autostart
+.config/fuzzel
+.config/hypr
+.config/swaync
+.config/uwsm
+.config/waybar
+.config/xdg-desktop-portal
+.local/share/dbus-1
+{{   end }}
+{{ end }}
