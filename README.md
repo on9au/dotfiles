@@ -706,6 +706,18 @@ machine already has `ksshaskpass` for sudo, so:
 SSH_ASKPASS=/usr/bin/ksshaskpass SSH_ASKPASS_REQUIRE=force ssh-keygen -K
 ```
 
+**ssh-agent is the worst case of this**, because it is a systemd unit and so
+never has a tty at all — an sk key loaded with `ssh-add -K` cannot sign until
+the agent has an askpass. The symptom is `agent refused operation` on the
+client, with `sshkey_sign: incorrect passphrase supplied to decrypt private
+key` in `journalctl --user -u ssh-agent`; neither points at a missing prompt.
+Worse, it is silent about the cause: once the agent holds an identity, ssh uses
+that copy and never falls back to the handle file on disk, so a broken agent
+key shadows a working one. `ssh-add -D` is the quick way out.
+
+`SSH_ASKPASS` is therefore set in `environment.d` and not only in `uwsm/env` —
+the user manager starts the agent from its own environment, not the session's.
+
 Note also that `ssh-keygen -Y sign` writes its signature next to the file being
 signed, so signing `/dev/null` as a throwaway probe fails on `/dev/null.sig`
 long after the interesting part — the touch — has already happened.
