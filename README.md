@@ -665,24 +665,76 @@ both will keep answering `/run/user/1000/gcr/ssh` until the next full login.
 `systemctl --user set-environment SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"`
 fixes the running session without logging out.
 
-**Two keys means enrolling two keys, everywhere.** A backup that was generated
-on the primary is not a backup. With the second key plugged in and the first
-unplugged:
+**One credential per key, both resident.** The two keys are genuinely two
+devices — a backup generated on the primary would not be a backup at all, and
+the handle files in `~/.ssh` look identical either way, so it is worth being
+able to re-check:
+
+| Handle | Fingerprint | Device |
+| --- | --- | --- |
+| `id_ed25519_sk_primary` | `SHA256:KYhxT8Wejm4/tJ2b++vMK3oKtRa6BiREOI/iAYDvFLY` | serial 38362833 |
+| `id_ed25519_sk_backup` | `SHA256:3+++WT+/EMp5qBV1H8nsFVBQlcXdrxDhQPmJn1Zt3Qg` | serial 38362959 |
+
+Both were generated `-O resident`, which is the property worth having: the
+credential lives on the key itself, so `~/.ssh` is a convenience rather than
+something whose loss costs the key. With exactly one key plugged in:
 
 ```bash
-ssh-keygen -Y sign -f ~/.ssh/id_ed25519_sk_backup -n test /dev/null
+cd "$(mktemp -d)" && ssh-keygen -K && ssh-keygen -lf *.pub
 ```
 
-A touch and a signature means that handle really belongs to that device; "key
-not found" means it does not. Both `.pub` files then go to GitHub and to every
-`authorized_keys` — while the old `id_ed25519` still works, not after.
+downloads that key's credential (PIN, then touch) and prints its fingerprint —
+which one comes back tells you which device is in your hand. It lands as
+`id_ed25519_sk_rk`, no application suffix, because the application is exactly
+`ssh:`. `ykman fido info` is the no-touch version: *Credential storage
+remaining* differs per device (95 and 94 here — five and six credentials used,
+the rest being website passkeys), so it distinguishes the two keys without
+authenticating, but it cannot say *which* credentials those are.
 
-**`~/.ssh/config` is not in this repo** (it names hosts that need not be
-public, and lives next to private keys). Worth knowing what it does: an
-explicit `IdentityFile` under `Host *` *replaces* the `~/.ssh/id_*` defaults
-rather than adding to them, so the moment the sk keys are listed there, the old
-key stops being offered to anything — including GitHub, which fails silently
-here because this repo's remote is HTTPS through the libsecret helper.
+Both `.pub` files go to GitHub and to every `authorized_keys` — while the old
+`id_ed25519` still works, not after.
+
+**A PIN prompt needs an askpass when there is no tty.** `ssh-keygen -K`, and
+anything else that asks for a FIDO2 PIN, falls back to `$SSH_ASKPASS` when it
+has no controlling terminal — from a GUI app, or from a tool driving the shell.
+Unset, it defaults to `/usr/lib/ssh/ssh-askpass`, which Arch ships only in
+`x11-ssh-askpass`; the failure is a misleading *"incorrect passphrase supplied
+to decrypt private key"* for a passphrase it never managed to read. This
+machine already has `ksshaskpass` for sudo, so:
+
+```bash
+SSH_ASKPASS=/usr/bin/ksshaskpass SSH_ASKPASS_REQUIRE=force ssh-keygen -K
+```
+
+Note also that `ssh-keygen -Y sign` writes its signature next to the file being
+signed, so signing `/dev/null` as a throwaway probe fails on `/dev/null.sig`
+long after the interesting part — the touch — has already happened.
+
+**The keys come from the agent, not from `IdentityFile`.** Naming both handle
+files under `Host *` looked obvious and was wrong: ssh offers them in order, so
+with only the backup plugged it offered the primary first — and a FIDO2 key
+insists on a touch *before* it will admit it does not hold a credential (you
+cannot enumerate a YubiKey's credentials without authenticating to it). Every
+connection on the second key therefore cost a touch, a failure, and a second
+touch. Reordering just moves which key pays.
+
+Because both credentials are resident, the agent solves it instead:
+
+```bash
+ssh-add -K          # PIN + touch; loads the plugged key's resident credential
+ssh-add -l          # exactly one sk key -- the one in your hand
+```
+
+`~/.ssh/config` now names no sk `IdentityFile` at all, so the only sk identity
+ever offered is whichever key you loaded. Re-run `ssh-add -K` after swapping
+keys. Note that an explicit `IdentityFile` also *replaces* the `~/.ssh/id_*`
+defaults rather than adding to them, which is the other half of why the old
+`Host *` block was disruptive: while it was there, `id_ed25519` stopped being
+offered to anything, GitHub included — silently, since this repo's remote is
+HTTPS through the libsecret helper.
+
+The file itself is not in this repo (it names hosts that need not be public,
+and lives next to private keys).
 
 Not in play on this machine: `pcscd` stays off (FIDO2 goes over hidraw; only
 the PIV and OpenPGP applets need a smartcard daemon), commit signing is still
