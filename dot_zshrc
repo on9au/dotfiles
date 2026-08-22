@@ -32,6 +32,19 @@ zvm_after_init() {
   bindkey -M vicmd 'j' history-substring-search-down
 }
 
+# ssh-agent
+# OpenSSH's agent, not gcr-ssh-agent: only this one can use the YubiKey FIDO2
+# keys. The socket unit exports nothing, so the path has to be named here --
+# same value as ~/.config/environment.d/10-ssh-agent.conf, which covers the
+# graphical session; this line covers shells, including SSH logins into this
+# machine, where environment.d is never read.
+#
+# Guarded: WSL shares this file and has no ssh-agent.socket, and pointing
+# SSH_AUTH_SOCK at a socket that does not exist is worse than leaving it alone.
+if [ -n "${XDG_RUNTIME_DIR:-}" ] && [ -S "$XDG_RUNTIME_DIR/ssh-agent.socket" ]; then
+  export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+fi
+
 # kitty ssh
 [ "$TERM" = "xterm-kitty" ] && alias ssh="kitty +kitten ssh"
 

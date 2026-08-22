@@ -617,14 +617,77 @@ The per-user half needs no root and is already set:
 # The helper ships with git, in /usr/lib/git-core, so the bare name resolves.
 git config --global credential.helper libsecret
 
-# ssh: SSH_AUTH_SOCK was unset -- there was no agent at all. gnome-keyring
-# dropped its ssh component upstream; gcr-ssh-agent (from gcr-4, already
-# installed) replaced it and exports the socket into the systemd user env.
-systemctl --user enable --now gcr-ssh-agent.socket
+# ssh: nothing here any more -- gcr-ssh-agent was tried first and then
+# retired, see "SSH agent and YubiKeys" below. It must stay disabled.
+systemctl --user disable --now gcr-ssh-agent.socket
 ```
 
 `gh` is not covered by any of this — it keeps its token in
 `~/.config/gh/hosts.yml` in plaintext and has no libsecret backend.
+
+### SSH agent and YubiKeys
+
+SSH keys live on two YubiKey 5C NFCs as FIDO2 keys — `sk-ssh-ed25519`, one per
+key, `id_ed25519_sk_primary` and `id_ed25519_sk_backup`. The private half never
+leaves the device; what sits in `~/.ssh` is only a *handle*, useless without the
+YubiKey that made it. Every authentication needs a physical touch.
+
+**Which agent, and why it changed.** gcr-ssh-agent was the answer while keys
+were ordinary files on disk (see Keyring above). It cannot hold these:
+`/usr/lib/gcr-ssh-agent` links no libfido2 and knows no `sk-*` key types. So it
+is disabled and OpenSSH's own agent — which talks to the key through
+`/usr/lib/ssh/ssh-sk-helper` — took over:
+
+```bash
+systemctl --user disable --now gcr-ssh-agent.socket
+systemctl --user enable  --now ssh-agent.socket
+```
+
+**The socket path has to be named twice, and neither place is optional.**
+`ssh-agent.socket` listens on `$XDG_RUNTIME_DIR/ssh-agent.socket` but exports
+nothing; its own unit file says *"Requires SSH_AUTH_SOCK … to be set in
+environment"*. The two readers of that variable are reached differently:
+
+| File | Covers | Why the other one misses it |
+| --- | --- | --- |
+| `.config/environment.d/10-ssh-agent.conf` | the systemd user manager, so every graphical app and user unit | a shell never reads environment.d |
+| `.zshrc` | interactive shells, including SSHing *into* this machine | that login has no systemd user manager env to inherit |
+
+Set in only one, the symptom is a partial one: `ssh` works in kitty and the
+editor's git integration says `Connection refused`, or the reverse. Both files
+carry the same value and the `.zshrc` line is guarded on the socket existing,
+since WSL shares that file and has no such unit.
+
+The old gcr path is stickier than it looks. `SSH_AUTH_SOCK` survives in the
+systemd user environment after its unit is disabled, so a machine that has run
+both will keep answering `/run/user/1000/gcr/ssh` until the next full login.
+`systemctl --user show-environment | grep SSH_AUTH_SOCK` is the check;
+`systemctl --user set-environment SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"`
+fixes the running session without logging out.
+
+**Two keys means enrolling two keys, everywhere.** A backup that was generated
+on the primary is not a backup. With the second key plugged in and the first
+unplugged:
+
+```bash
+ssh-keygen -Y sign -f ~/.ssh/id_ed25519_sk_backup -n test /dev/null
+```
+
+A touch and a signature means that handle really belongs to that device; "key
+not found" means it does not. Both `.pub` files then go to GitHub and to every
+`authorized_keys` — while the old `id_ed25519` still works, not after.
+
+**`~/.ssh/config` is not in this repo** (it names hosts that need not be
+public, and lives next to private keys). Worth knowing what it does: an
+explicit `IdentityFile` under `Host *` *replaces* the `~/.ssh/id_*` defaults
+rather than adding to them, so the moment the sk keys are listed there, the old
+key stops being offered to anything — including GitHub, which fails silently
+here because this repo's remote is HTTPS through the libsecret helper.
+
+Not in play on this machine: `pcscd` stays off (FIDO2 goes over hidraw; only
+the PIV and OpenPGP applets need a smartcard daemon), commit signing is still
+GPG key `3FCF1E93FFC208B5` rather than the YubiKey, and root is plain ext4, so
+`systemd-cryptenroll --fido2-device` has nothing to enroll into.
 
 ### Idle, locking and suspend
 

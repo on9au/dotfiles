@@ -29,6 +29,7 @@ docs
 
 {{ if eq .chezmoi.os "windows" }}
 .config/autostart
+.config/environment.d
 .config/fuzzel
 .config/hypr
 .config/kcminputrc
@@ -58,6 +59,7 @@ reload-hyprland.sh
 {{ if eq .chezmoi.os "linux" }}
 {{   if contains "microsoft" (lower .chezmoi.kernel.osrelease) }}
 .config/autostart
+.config/environment.d
 .config/fuzzel
 .config/hypr
 .config/swaync
