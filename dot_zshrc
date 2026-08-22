@@ -64,6 +64,28 @@ case ":$PATH:" in
 esac
 # pnpm end
 
+# flatpak
+# Wrappers in exports/bin let flatpak apps be launched by name; XDG_DATA_DIRS
+# makes their .desktop entries and icons visible to launchers started from a
+# shell. Guarded on existence since the dirs only appear once apps are
+# installed (and never on WSL).
+for _flatpak_dir in "$HOME/.local/share/flatpak" /var/lib/flatpak; do
+  if [ -d "$_flatpak_dir/exports/bin" ]; then
+    case ":$PATH:" in
+      *":$_flatpak_dir/exports/bin:"*) ;;
+      *) export PATH="$PATH:$_flatpak_dir/exports/bin" ;;
+    esac
+  fi
+  if [ -d "$_flatpak_dir/exports/share" ]; then
+    case ":${XDG_DATA_DIRS:-/usr/local/share:/usr/share}:" in
+      *":$_flatpak_dir/exports/share:"*) ;;
+      *) export XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}:$_flatpak_dir/exports/share" ;;
+    esac
+  fi
+done
+unset _flatpak_dir
+# flatpak end
+
 # editor
 if command -v nvim >/dev/null 2>&1; then
     export EDITOR='nvim'
