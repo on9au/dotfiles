@@ -710,28 +710,29 @@ Note also that `ssh-keygen -Y sign` writes its signature next to the file being
 signed, so signing `/dev/null` as a throwaway probe fails on `/dev/null.sig`
 long after the interesting part — the touch — has already happened.
 
-**The keys come from the agent, not from `IdentityFile`.** Naming both handle
-files under `Host *` looked obvious and was wrong: ssh offers them in order, so
-with only the backup plugged it offered the primary first — and a FIDO2 key
-insists on a touch *before* it will admit it does not hold a credential (you
-cannot enumerate a YubiKey's credentials without authenticating to it). Every
-connection on the second key therefore cost a touch, a failure, and a second
-touch. Reordering just moves which key pays.
+**Both handles are named under `Host *`, and the second key costs a wasted
+touch.** ssh offers identities in the order they are listed, so with only the
+backup plugged it offers the primary first — and a FIDO2 key insists on a touch
+*before* it will admit it does not hold a credential, since enumerating a
+YubiKey's credentials without authenticating is exactly what that rule prevents.
+So: touch, failure, then the backup works. Reordering only moves which key pays.
 
-Because both credentials are resident, the agent solves it instead:
+This is accepted rather than fixed. The fix, if it becomes annoying, is the
+agent — both credentials are resident, so it can hold only the key in hand:
 
 ```bash
 ssh-add -K          # PIN + touch; loads the plugged key's resident credential
-ssh-add -l          # exactly one sk key -- the one in your hand
+ssh-add -l          # exactly one sk key
 ```
 
-`~/.ssh/config` now names no sk `IdentityFile` at all, so the only sk identity
-ever offered is whichever key you loaded. Re-run `ssh-add -K` after swapping
-keys. Note that an explicit `IdentityFile` also *replaces* the `~/.ssh/id_*`
-defaults rather than adding to them, which is the other half of why the old
-`Host *` block was disruptive: while it was there, `id_ed25519` stopped being
-offered to anything, GitHub included — silently, since this repo's remote is
-HTTPS through the libsecret helper.
+That only helps once the `IdentityFile` lines are gone, though: a listed file is
+offered whether or not the agent has it.
+
+One side effect of listing them at all: an explicit `IdentityFile` *replaces*
+the `~/.ssh/id_*` defaults rather than adding to them, so `id_ed25519` is no
+longer offered to anything — GitHub included, which fails silently here because
+this repo's remote is HTTPS through the libsecret helper. Both sk keys need to
+be on GitHub and in every `authorized_keys`.
 
 The file itself is not in this repo (it names hosts that need not be public,
 and lives next to private keys).
