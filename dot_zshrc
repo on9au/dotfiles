@@ -78,10 +78,17 @@ esac
 # pnpm end
 
 # flatpak
-# Wrappers in exports/bin let flatpak apps be launched by name; XDG_DATA_DIRS
-# makes their .desktop entries and icons visible to launchers started from a
-# shell. Guarded on existence since the dirs only appear once apps are
-# installed (and never on WSL).
+# Wrappers in exports/bin let flatpak apps be launched by name (the command is
+# the app id, e.g. org.vinegarhq.Sober); XDG_DATA_DIRS makes their .desktop
+# entries and icons visible. Guarded on existence since the dirs only appear
+# once something is installed (and never on WSL).
+#
+# Arch already handles the XDG_DATA_DIRS half at login, twice over -- via
+# /etc/profile.d/flatpak.sh and the systemd user-environment generator
+# 60-flatpak -- so that part is only doing work in a shell that started before
+# the first install, which is exactly when flatpak prints its "not in the
+# search path" warning. The PATH half is not redundant: neither hook touches
+# PATH, `flatpak --print-updated-env` emits XDG_DATA_DIRS alone.
 for _flatpak_dir in "$HOME/.local/share/flatpak" /var/lib/flatpak; do
   if [ -d "$_flatpak_dir/exports/bin" ]; then
     case ":$PATH:" in
