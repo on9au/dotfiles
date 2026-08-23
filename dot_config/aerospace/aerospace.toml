@@ -36,6 +36,10 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 automatically-unhide-macos-hidden-apps = false
 key-mapping.preset = 'qwerty'
 
+# Hyprland's default (and every Wayland compositor's): moving the mouse over
+# a window focuses it, no click needed. AeroSpace ships this off.
+focus-follows-mouse.enabled = true
+
 # All ten always visible, matching waybar's "all ten always show" comment --
 # there's no multi-monitor pinning to port since this machine has one screen.
 persistent-workspaces = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
@@ -46,14 +50,16 @@ exec-on-workspace-change = ['/bin/bash', '-c',
     'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE'
 ]
 
-# gaps_in=5 / gaps_out=12 in looknfeel.lua. Top outer gap is taller to clear
-# SketchyBar (34px bar + 6px margin, see sketchybar/sketchybarrc).
+# gaps_in=5 / gaps_out=12 in looknfeel.lua, uniformly on all four edges here
+# too -- SketchyBar is flush and edge-to-edge (see sketchybarrc), so it isn't
+# part of this gap at all, just 38px of screen the bar has already claimed
+# before the same 12px everything else gets.
 gaps.inner.horizontal = 5
 gaps.inner.vertical = 5
 gaps.outer.left = 12
 gaps.outer.bottom = 12
 gaps.outer.right = 12
-gaps.outer.top = 40
+gaps.outer.top = 50
 
 [mode.main.binding]
 

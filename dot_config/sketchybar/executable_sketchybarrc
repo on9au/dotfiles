@@ -27,11 +27,26 @@ GREEN=0xffa6e3a1
 PEACH=0xfffab387
 
 ##### Bar Appearance #####
-# height=34, blur_radius for the same glassy look as background_blur in
-# looknfeel.lua / Ghostty's background-blur.
-sketchybar --bar position=top height=34 margin=6 y_offset=6 \
+# Flush and edge-to-edge, like the real menu bar it replaces -- margin=0,
+# corner_radius=0. A floating inset pill (waybar's own look, and this bar's
+# first draft) puts a rectangular corner near the screen's physically rounded
+# one and needs its own margin, which then has nothing to do with
+# aerospace.toml's window gaps. Matching the real bar's flush style sidesteps
+# both problems at once: this machine's actual corner curve is left to the
+# glass, and gaps.outer.top in aerospace.toml can just be "bar height + the
+# same 12 the other three edges use" instead of an independently-tuned number.
+#
+# notch_width/notch_display_height are measured from this exact display via
+# NSScreen.main.safeAreaInsets (top=38) and auxiliaryTopLeftArea/
+# auxiliaryTopRightArea (notch spans x=751..960 -> 209pt wide) -- see the
+# swift snippet in the commit message if this ever needs re-measuring for a
+# different machine. topmost=window: without it, whichever app is focused
+# (Ghostty, a maximized Firefox) draws in front of the bar, not behind it.
+sketchybar --bar position=top height=38 margin=0 y_offset=0 \
+                 notch_width=209 notch_display_height=38 notch_offset=0 \
+                 topmost=window \
                  color="$BASE" border_width=0 blur_radius=30 \
-                 padding_left=8 padding_right=8 corner_radius=10
+                 padding_left=8 padding_right=8 corner_radius=0
 
 ##### Defaults #####
 default=(
@@ -100,3 +115,10 @@ sketchybar --add item cpu right \
 
 ##### Force everything to run once (never do this inside a script) #####
 sketchybar --update
+
+# --update's own trigger isn't aerospace_workspace_change, so the space.N
+# scripts don't see $FOCUSED_WORKSPACE from it -- every space would start
+# unhighlighted until the next real switch. Sync it explicitly whenever
+# SketchyBar (re)starts on its own, independent of aerospace.toml's own
+# after-startup-command (which only runs when AeroSpace itself starts).
+sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused 2>/dev/null)"
