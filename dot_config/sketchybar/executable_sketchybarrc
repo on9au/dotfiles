@@ -97,11 +97,14 @@ sketchybar --add item front_app left \
 # directly behind the physical cutout and never appears at all -- this is
 # what "the time doesn't exist" was.
 #
-# It's added LAST in this chain, not first, to land leftmost in the right
-# group (just right of the notch) rather than at the outer screen edge --
-# a right-aligned group in SketchyBar stacks inward from the edge as items
-# are added, so the first --add here is the one that ends up farthest right.
-sketchybar --add item cpu right \
+# It's added FIRST in this chain on purpose, landing farthest right (the
+# outer screen edge) -- a right-aligned group in SketchyBar stacks inward
+# from the edge as items are added, so whatever --add's first here is
+# whatever ends up rightmost.
+sketchybar --add item clock right \
+           --set clock update_freq=10 icon.color="$YELLOW" icon=󰅐 \
+                 script="$PLUGIN_DIR/clock.sh" \
+           --add item cpu right \
            --set cpu update_freq=2 icon=󰻠 icon.color="$GREEN" \
                  script="$PLUGIN_DIR/cpu.sh" \
            --add item memory right \
@@ -115,10 +118,7 @@ sketchybar --add item cpu right \
            --subscribe volume volume_change \
            --add item battery right \
            --set battery update_freq=120 script="$PLUGIN_DIR/battery.sh" \
-           --subscribe battery system_woke power_source_change \
-           --add item clock right \
-           --set clock update_freq=10 icon.color="$YELLOW" icon=󰅐 \
-                 script="$PLUGIN_DIR/clock.sh"
+           --subscribe battery system_woke power_source_change
 
 ##### Force everything to run once (never do this inside a script) #####
 sketchybar --update
