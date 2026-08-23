@@ -78,15 +78,15 @@ sketchybar --add item front_app left \
 
 ##### Clock -- centered, same format as waybar's #####
 sketchybar --add item clock center \
-           --set clock update_freq=10 icon.color="$YELLOW" icon= \
+           --set clock update_freq=10 icon.color="$YELLOW" icon=󰅐 \
                  script="$PLUGIN_DIR/clock.sh"
 
 ##### Right side #####
 sketchybar --add item cpu right \
-           --set cpu update_freq=2 icon= icon.color="$GREEN" \
+           --set cpu update_freq=2 icon=󰻠 icon.color="$GREEN" \
                  script="$PLUGIN_DIR/cpu.sh" \
            --add item memory right \
-           --set memory update_freq=5 icon= icon.color="$PEACH" \
+           --set memory update_freq=5 icon=󰍛 icon.color="$PEACH" \
                  script="$PLUGIN_DIR/memory.sh" \
            --add item network right \
            --set network update_freq=5 icon.color="$BLUE" \
