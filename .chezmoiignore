@@ -70,16 +70,21 @@ reload-hyprland.sh
 {{   end }}
 {{ end }}
 
-# macOS: same shell/tmux/kitty/nvim half as WSL, none of the Wayland
-# compositor half. Everything below is Hyprland/waybar/uwsm/KDE/XDG-portal
-# config that has nothing to read it on macOS, plus .local/bin, which is
-# entirely wrappers around hyprctl/wl-copy/fuzzel/loginctl.
+# macOS: same shell/tmux/nvim half as WSL, none of the Wayland compositor
+# half. Everything below is Hyprland/waybar/uwsm/KDE/XDG-portal config that
+# has nothing to read it on macOS, plus .local/bin, which is entirely
+# wrappers around hyprctl/wl-copy/fuzzel/loginctl.
+#
+# kitty is in this list too: this machine uses Ghostty instead, specifically
+# for background-blur, which kitty does not support on macOS. Linux/Hyprland
+# keeps kitty -- see dot_config/ghostty/config and dot_config/kitty/kitty.conf.
 {{ if eq .chezmoi.os "darwin" }}
 .config/autostart
 .config/environment.d
 .config/fuzzel
 .config/hypr
 .config/kcminputrc
+.config/kitty
 .config/mimeapps.list
 .config/qt6ct
 .config/spotify-launcher.conf
@@ -90,4 +95,9 @@ reload-hyprland.sh
 .config/xdg-desktop-portal
 .local/bin
 .local/share/dbus-1
+{{ end }}
+
+# Ghostty is macOS-only here (see above); nothing on Linux/Windows reads it.
+{{ if ne .chezmoi.os "darwin" }}
+.config/ghostty
 {{ end }}
