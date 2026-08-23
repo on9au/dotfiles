@@ -70,9 +70,15 @@ export WINAPPS_SRC_DIR="$HOME/.local/bin/winapps-src"
 setopt interactive_comments
 
 # fnm
+#
+# The curl installer (Linux) puts the fnm binary itself in ~/.local/share/fnm
+# and expects that dir on PATH; Homebrew's fnm formula (macOS) puts it on
+# PATH directly and never creates that dir. So PATH-prepend it if present,
+# then activate fnm however it got found -- checking for the directory alone
+# would silently skip `fnm env` (and so the active node version) on brew.
 FNM_PATH="$HOME/.local/share/fnm"
-if [ -d "$FNM_PATH" ]; then
-  export PATH="$FNM_PATH:$PATH"
+[ -d "$FNM_PATH" ] && export PATH="$FNM_PATH:$PATH"
+if command -v fnm >/dev/null 2>&1; then
   eval "$(fnm env --shell zsh)"
 fi
 
