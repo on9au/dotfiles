@@ -6,7 +6,7 @@
 
 # font
 font-family = FiraCode Nerd Font Mono
-font-size = 12
+font-size = 14
 
 # transparency and blur
 background-opacity = 0.78
