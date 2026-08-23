@@ -15,13 +15,10 @@
 
 config-version = 2
 
-# Windows already open when AeroSpace starts (every login, since
-# start-at-login is on below) get adopted into whatever workspace they're
-# on -- and that adoption can land them in accordion instead of
-# default-root-container-layout's 'tiles', since AeroSpace has no tiled
-# arrangement to infer from windows that already existed. Force every
-# workspace back to tiles a second after startup as a backstop.
-after-startup-command = ['exec-and-forget /bin/sh -c "sleep 1 && for w in $(aerospace list-workspaces --all); do aerospace layout --workspace \"\$w\" --root tiles >/dev/null 2>&1; done"']
+# The accordion-layout backstop and the per-app workspace placement (the
+# analog of hosts/desktop/autostart.lua) both live in autostart.sh --
+# a shell script is far more readable than either as an inline TOML string.
+after-startup-command = ['exec-and-forget /bin/sh $HOME/.config/aerospace/autostart.sh']
 start-at-login = true
 auto-reload-config = true
 
