@@ -69,3 +69,25 @@ reload-hyprland.sh
 .local/share/dbus-1
 {{   end }}
 {{ end }}
+
+# macOS: same shell/tmux/kitty/nvim half as WSL, none of the Wayland
+# compositor half. Everything below is Hyprland/waybar/uwsm/KDE/XDG-portal
+# config that has nothing to read it on macOS, plus .local/bin, which is
+# entirely wrappers around hyprctl/wl-copy/fuzzel/loginctl.
+{{ if eq .chezmoi.os "darwin" }}
+.config/autostart
+.config/environment.d
+.config/fuzzel
+.config/hypr
+.config/kcminputrc
+.config/mimeapps.list
+.config/qt6ct
+.config/spotify-launcher.conf
+.config/swaync
+.config/uwsm
+.config/waybar
+.config/winapps
+.config/xdg-desktop-portal
+.local/bin
+.local/share/dbus-1
+{{ end }}

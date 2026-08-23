@@ -5,7 +5,16 @@ fpath=(~/.zsh/completion $fpath)
 autoload -Uz compinit && compinit
 
 # Load antidote and source plugins from ~/.zsh_plugins.txt
-source ${ZDOTDIR:-~}/.antidote/antidote.zsh
+#
+# Two install methods, two locations: a manual `git clone ~/.antidote` (Linux)
+# vs Homebrew's formula, which drops antidote.zsh under
+# $HOMEBREW_PREFIX/share/antidote instead. HOMEBREW_PREFIX comes from `brew
+# shellenv` in .zshenv, which runs before this file.
+if [ -f "${ZDOTDIR:-~}/.antidote/antidote.zsh" ]; then
+  source "${ZDOTDIR:-~}/.antidote/antidote.zsh"
+elif [ -n "${HOMEBREW_PREFIX:-}" ] && [ -f "$HOMEBREW_PREFIX/share/antidote/antidote.zsh" ]; then
+  source "$HOMEBREW_PREFIX/share/antidote/antidote.zsh"
+fi
 antidote load
 
 # History config (omz used to set this; antidote doesn't)
@@ -54,14 +63,14 @@ GPG_TTY=$(tty)
 
 alias vencord='sh -c "$(curl -sS https://vencord.dev/install.sh)"'
 
-export CDGIT_ROOT="/home/djpro/Projects"
+export CDGIT_ROOT="$HOME/Projects"
 export WINAPPS_SRC_DIR="$HOME/.local/bin/winapps-src"
 
 # allow `#` to be used in shell
 setopt interactive_comments
 
 # fnm
-FNM_PATH="/home/djpro/.local/share/fnm"
+FNM_PATH="$HOME/.local/share/fnm"
 if [ -d "$FNM_PATH" ]; then
   export PATH="$FNM_PATH:$PATH"
   eval "$(fnm env --shell zsh)"
@@ -70,7 +79,7 @@ fi
 export PATH="$PATH:$(go env GOBIN):$(go env GOPATH)/bin:$HOME/.local/bin"
 
 # pnpm
-export PNPM_HOME="/home/djpro/.local/share/pnpm"
+export PNPM_HOME="$HOME/.local/share/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME/bin:"*) ;;
   *) export PATH="$PNPM_HOME/bin:$PATH" ;;
