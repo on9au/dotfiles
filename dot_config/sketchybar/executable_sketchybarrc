@@ -1,0 +1,102 @@
+#!/bin/bash
+# SketchyBar -- macOS-only status bar, the closest analog to waybar here.
+# See ../waybar/config.jsonc for what this is ported from, and
+# .chezmoiignore for why this only lands on darwin.
+#
+# Modules dropped rather than ported, because there's no macOS equivalent
+# behind them: hyprland/submap, temperature (no stable sensor path),
+# power-profiles-daemon, idle_inhibitor/custom/nolock (no hypridle),
+# custom/fcitx5, tray (SketchyBar has no systray), custom/notification (no
+# swaync -- click the menu-bar clock for Notification Centre instead).
+
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+
+# Catppuccin Mocha, same hex values as ../hypr/colors.lua and
+# ../kitty/current-theme.conf. SketchyBar colors are 0xAARRGGBB.
+BASE=0xe61e1e2e
+MANTLE=0xff181825
+SURFACE0=0xff313244
+SURFACE1=0xff45475a
+TEXT=0xffcdd6f4
+SUBTEXT1=0xffbac2de
+MAUVE=0xffcba6f7
+BLUE=0xff89b4fa
+RED=0xfff38ba8
+YELLOW=0xfff9e2af
+GREEN=0xffa6e3a1
+PEACH=0xfffab387
+
+##### Bar Appearance #####
+# height=34, blur_radius for the same glassy look as background_blur in
+# looknfeel.lua / Ghostty's background-blur.
+sketchybar --bar position=top height=34 margin=6 y_offset=6 \
+                 color="$BASE" border_width=0 blur_radius=30 \
+                 padding_left=8 padding_right=8 corner_radius=10
+
+##### Defaults #####
+default=(
+  padding_left=6
+  padding_right=6
+  icon.font="FiraCode Nerd Font Mono:Bold:14.0"
+  label.font="FiraCode Nerd Font Mono:Regular:13.0"
+  icon.color="$TEXT"
+  label.color="$TEXT"
+  icon.padding_left=4
+  icon.padding_right=4
+  label.padding_left=4
+  label.padding_right=4
+)
+sketchybar --default "${default[@]}"
+
+##### Workspaces -- hyprland/workspaces equivalent #####
+# All ten always shown, matching "rules.lua marks them persistent" in
+# waybar/config.jsonc. aerospace.toml's exec-on-workspace-change triggers
+# this event on every switch instead of polling.
+sketchybar --add event aerospace_workspace_change
+
+for i in $(seq 1 10); do
+  sketchybar --add item space.$i left \
+             --subscribe space.$i aerospace_workspace_change \
+             --set space.$i \
+               icon="$i" \
+               icon.padding_left=7 \
+               icon.padding_right=7 \
+               background.color="$SURFACE0" \
+               background.corner_radius=6 \
+               background.height=24 \
+               background.drawing=off \
+               label.drawing=off \
+               click_script="aerospace workspace $i" \
+               script="$PLUGIN_DIR/aerospace_workspace.sh"
+done
+
+##### Front app -- hyprland/window equivalent #####
+sketchybar --add item front_app left \
+           --set front_app icon.drawing=off label.color="$SUBTEXT1" \
+                 script="$PLUGIN_DIR/front_app.sh" \
+           --subscribe front_app front_app_switched
+
+##### Clock -- centered, same format as waybar's #####
+sketchybar --add item clock center \
+           --set clock update_freq=10 icon.color="$YELLOW" icon= \
+                 script="$PLUGIN_DIR/clock.sh"
+
+##### Right side #####
+sketchybar --add item cpu right \
+           --set cpu update_freq=2 icon= icon.color="$GREEN" \
+                 script="$PLUGIN_DIR/cpu.sh" \
+           --add item memory right \
+           --set memory update_freq=5 icon= icon.color="$PEACH" \
+                 script="$PLUGIN_DIR/memory.sh" \
+           --add item network right \
+           --set network update_freq=5 icon.color="$BLUE" \
+                 script="$PLUGIN_DIR/network.sh" \
+           --add item volume right \
+           --set volume icon.color="$MAUVE" script="$PLUGIN_DIR/volume.sh" \
+           --subscribe volume volume_change \
+           --add item battery right \
+           --set battery update_freq=120 script="$PLUGIN_DIR/battery.sh" \
+           --subscribe battery system_woke power_source_change
+
+##### Force everything to run once (never do this inside a script) #####
+sketchybar --update

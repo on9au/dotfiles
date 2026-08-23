@@ -97,7 +97,12 @@ reload-hyprland.sh
 .local/share/dbus-1
 {{ end }}
 
-# Ghostty is macOS-only here (see above); nothing on Linux/Windows reads it.
+# Ghostty, AeroSpace, SketchyBar and JankyBorders are macOS-only here -- the
+# closest analog stack to Hyprland/waybar this OS has (no Wayland, so no
+# literal port is possible). Nothing on Linux/Windows reads any of these.
 {{ if ne .chezmoi.os "darwin" }}
 .config/ghostty
+.config/aerospace
+.config/sketchybar
+.config/borders
 {{ end }}
