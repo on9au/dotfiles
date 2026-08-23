@@ -155,9 +155,17 @@ return {
     },
   },
   -- Syntax highlighting for the fenced blocks and for standalone .mmd files.
+  -- The rest are what `:checkhealth snacks` flags as missing for its doc
+  -- image rendering (Snacks.image.doc): without them, math/code blocks in
+  -- those languages don't get image-rendered even though mmdc/tectonic are
+  -- both installed and working. Not "norg" -- nvim-treesitter has no parser
+  -- registered under that name (it's neorg's own ecosystem, and neorg isn't
+  -- a plugin here), so it can only ever warn/skip, never actually install.
   {
     "nvim-treesitter/nvim-treesitter",
-    opts = { ensure_installed = { "mermaid" } },
+    opts = {
+      ensure_installed = { "mermaid", "css", "latex", "scss", "svelte", "typst", "vue" },
+    },
   },
   {
     "folke/which-key.nvim",

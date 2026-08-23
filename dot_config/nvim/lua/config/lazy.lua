@@ -31,6 +31,10 @@ require("lazy").setup({
     -- version = "*", -- try installing the latest stable version for plugins that support semver
   },
   install = { colorscheme = { "tokyonight", "habamax" } },
+  -- No plugin here needs luarocks (:checkhealth lazy says so explicitly);
+  -- disabling it outright instead of leaving the hererocks bootstrap error
+  -- for something nothing will ever ask for.
+  rocks = { enabled = false },
   checker = {
     enabled = true, -- check for plugin updates periodically
     notify = false, -- notify on update
