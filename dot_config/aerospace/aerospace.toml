@@ -50,16 +50,22 @@ exec-on-workspace-change = ['/bin/bash', '-c',
     'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE'
 ]
 
-# gaps_in=5 / gaps_out=12 in looknfeel.lua, uniformly on all four edges here
-# too -- SketchyBar is flush and edge-to-edge (see sketchybarrc), so it isn't
-# part of this gap at all, just 38px of screen the bar has already claimed
-# before the same 12px everything else gets.
+# gaps_in=5 / gaps_out=12 in looknfeel.lua, uniformly on all four edges.
+#
+# AeroSpace tiles within NSScreen.visibleFrame, not the raw screen frame --
+# that already excludes the OS's reserved top strip (currently 38pt,
+# confirmed via CGWindowListCopyWindowInfo, regardless of whether the native
+# menu bar is visually hidden), same strip SketchyBar's bar occupies. Adding
+# the bar's height into gaps.outer.top on top of that double-counts it: a
+# previous version set this to 50 (38 bar + 12) and the actual gap came out
+# to 88pt, not 50. Plain 12 here already lands windows exactly 12pt below
+# the bar.
 gaps.inner.horizontal = 5
 gaps.inner.vertical = 5
 gaps.outer.left = 12
 gaps.outer.bottom = 12
 gaps.outer.right = 12
-gaps.outer.top = 50
+gaps.outer.top = 12
 
 [mode.main.binding]
 
