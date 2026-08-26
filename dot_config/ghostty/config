@@ -29,10 +29,6 @@ copy-on-select = true
 # prompt for OSC 52 reads (tmux, nvim, image.nvim all rely on it).
 clipboard-read = allow
 
-# ctrl+c: copy the selection if there is one, otherwise fall through as a
-# normal interrupt -- copy_to_clipboard only consumes the keypress when there
-# is something to copy, so this is kitty's copy_or_interrupt in Ghostty terms.
-keybind = ctrl+c=copy_to_clipboard:mixed
 keybind = ctrl+shift+v=paste_from_clipboard
 
 # same Catppuccin Mocha palette as kitty/current-theme.conf, tmux and nvim
