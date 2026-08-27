@@ -214,6 +214,179 @@
                 ]
               }
             ]
+          },
+          {
+            "description": "Ctrl+arrows move by word; Cmd+arrows keep the macOS line/doc jumps",
+            "manipulators": [
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "left_arrow",
+                  "modifiers": { "mandatory": ["command"], "optional": ["shift"] }
+                },
+                "to": [{ "key_code": "left_arrow", "modifiers": ["left_option"] }],
+                "conditions": [
+                  {
+                    "type": "frontmost_application_unless",
+                    "bundle_identifiers": [
+                      "^com\\.mitchellh\\.ghostty$",
+                      "^com\\.apple\\.Terminal$",
+                      "^com\\.googlecode\\.iterm2$",
+                      "^net\\.kovidgoyal\\.kitty$",
+                      "^com\\.github\\.wez\\.wezterm$",
+                      "^org\\.alacritty$"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "right_arrow",
+                  "modifiers": { "mandatory": ["command"], "optional": ["shift"] }
+                },
+                "to": [{ "key_code": "right_arrow", "modifiers": ["left_option"] }],
+                "conditions": [
+                  {
+                    "type": "frontmost_application_unless",
+                    "bundle_identifiers": [
+                      "^com\\.mitchellh\\.ghostty$",
+                      "^com\\.apple\\.Terminal$",
+                      "^com\\.googlecode\\.iterm2$",
+                      "^net\\.kovidgoyal\\.kitty$",
+                      "^com\\.github\\.wez\\.wezterm$",
+                      "^org\\.alacritty$"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "up_arrow",
+                  "modifiers": { "mandatory": ["command"], "optional": ["shift"] }
+                },
+                "to": [{ "key_code": "up_arrow", "modifiers": ["left_option"] }],
+                "conditions": [
+                  {
+                    "type": "frontmost_application_unless",
+                    "bundle_identifiers": [
+                      "^com\\.mitchellh\\.ghostty$",
+                      "^com\\.apple\\.Terminal$",
+                      "^com\\.googlecode\\.iterm2$",
+                      "^net\\.kovidgoyal\\.kitty$",
+                      "^com\\.github\\.wez\\.wezterm$",
+                      "^org\\.alacritty$"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "down_arrow",
+                  "modifiers": { "mandatory": ["command"], "optional": ["shift"] }
+                },
+                "to": [{ "key_code": "down_arrow", "modifiers": ["left_option"] }],
+                "conditions": [
+                  {
+                    "type": "frontmost_application_unless",
+                    "bundle_identifiers": [
+                      "^com\\.mitchellh\\.ghostty$",
+                      "^com\\.apple\\.Terminal$",
+                      "^com\\.googlecode\\.iterm2$",
+                      "^net\\.kovidgoyal\\.kitty$",
+                      "^com\\.github\\.wez\\.wezterm$",
+                      "^org\\.alacritty$"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "left_arrow",
+                  "modifiers": { "mandatory": ["control"], "optional": ["shift"] }
+                },
+                "to": [{ "key_code": "left_arrow", "modifiers": ["left_command"] }],
+                "conditions": [
+                  {
+                    "type": "frontmost_application_unless",
+                    "bundle_identifiers": [
+                      "^com\\.mitchellh\\.ghostty$",
+                      "^com\\.apple\\.Terminal$",
+                      "^com\\.googlecode\\.iterm2$",
+                      "^net\\.kovidgoyal\\.kitty$",
+                      "^com\\.github\\.wez\\.wezterm$",
+                      "^org\\.alacritty$"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "right_arrow",
+                  "modifiers": { "mandatory": ["control"], "optional": ["shift"] }
+                },
+                "to": [{ "key_code": "right_arrow", "modifiers": ["left_command"] }],
+                "conditions": [
+                  {
+                    "type": "frontmost_application_unless",
+                    "bundle_identifiers": [
+                      "^com\\.mitchellh\\.ghostty$",
+                      "^com\\.apple\\.Terminal$",
+                      "^com\\.googlecode\\.iterm2$",
+                      "^net\\.kovidgoyal\\.kitty$",
+                      "^com\\.github\\.wez\\.wezterm$",
+                      "^org\\.alacritty$"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "up_arrow",
+                  "modifiers": { "mandatory": ["control"], "optional": ["shift"] }
+                },
+                "to": [{ "key_code": "up_arrow", "modifiers": ["left_command"] }],
+                "conditions": [
+                  {
+                    "type": "frontmost_application_unless",
+                    "bundle_identifiers": [
+                      "^com\\.mitchellh\\.ghostty$",
+                      "^com\\.apple\\.Terminal$",
+                      "^com\\.googlecode\\.iterm2$",
+                      "^net\\.kovidgoyal\\.kitty$",
+                      "^com\\.github\\.wez\\.wezterm$",
+                      "^org\\.alacritty$"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "down_arrow",
+                  "modifiers": { "mandatory": ["control"], "optional": ["shift"] }
+                },
+                "to": [{ "key_code": "down_arrow", "modifiers": ["left_command"] }],
+                "conditions": [
+                  {
+                    "type": "frontmost_application_unless",
+                    "bundle_identifiers": [
+                      "^com\\.mitchellh\\.ghostty$",
+                      "^com\\.apple\\.Terminal$",
+                      "^com\\.googlecode\\.iterm2$",
+                      "^net\\.kovidgoyal\\.kitty$",
+                      "^com\\.github\\.wez\\.wezterm$",
+                      "^org\\.alacritty$"
+                    ]
+                  }
+                ]
+              }
+            ]
           }
         ]
       }

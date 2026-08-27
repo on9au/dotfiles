@@ -1,6 +1,6 @@
 # Karabiner-Elements
 
-Five rules, all there to make a Mac keyboard behave like the Linux one this
+Six rules, all there to make a Mac keyboard behave like the Linux one this
 repo is really built around. `karabiner.json` is JSON and can't hold comments,
 hence this file.
 
@@ -11,6 +11,7 @@ hence this file.
 | **Ctrl <-> Cmd** | copy/paste/quit/tabs move to Control, like every Linux desktop. Terminals excluded |
 | **Cmd+Space** | always reaches the launcher, in or out of a terminal -- see below |
 | **Cmd+Tab** | no app switcher; Tab cycles tabs the Linux way |
+| **Arrows** | Ctrl+arrow moves by word; Cmd+arrow keeps the macOS line/doc jumps |
 
 ## Why Left Option is the modifier
 
@@ -164,6 +165,49 @@ it rides on hyper, whose rule has no app condition and no Command in it.
 There is no supported `defaults` key for disabling the application switcher;
 it lives in the Dock and WindowServer rather than in symbolichotkeys. A
 Karabiner rule is the way to do it.
+
+## Arrows: three claimants, one survivor
+
+Before this rule, word-wise movement -- `Ctrl+Left` on Linux, and the single
+most-used text motion there is -- had been squeezed out entirely:
+
+| pressed | reached the app as | did |
+| --- | --- | --- |
+| `Ctrl+Left` | `Cmd+Left` (rule 3) | beginning of line |
+| `Cmd+Left` | `Ctrl+Left` (rule 3) | Mission Control, move a space |
+| `L-Opt+Left` | `ctrl+opt+cmd+Left` (rule 1) | AeroSpace `focus left` |
+| `R-Opt+Left` | `Option+Left` | word left -- the only one |
+
+So the motion existed, on the far side of the keyboard, reachable only with
+the hand not doing the navigating.
+
+This rule swaps the arrows back, and nothing is lost in the trade:
+
+    Ctrl+arrow  ->  Option+arrow    word / paragraph moves    (Linux)
+    Cmd+arrow   ->  Cmd+arrow       line and document jumps   (macOS, restored)
+
+The first line is the point. The second is there because rule 3 had otherwise
+left `Cmd+Left` meaning "move a space" -- so the macOS line-start and
+document-start jumps had no chord at all, and this hands them back the one
+they have on a stock Mac.
+
+What actually goes is Mission Control's `Ctrl+arrow` space switching
+(symbolic hotkeys 79-82). AeroSpace's workspaces replace Spaces wholesale and
+`darwin-defaults.sh` already turns off `mru-spaces`, so there was nothing
+there to lose.
+
+Both directions carry `optional: ["shift"]`, so the selection variants follow
+their movement counterparts: `Ctrl+Shift+Left` selects a word,
+`Cmd+Shift+Left` selects to the start of the line.
+
+Caps Lock comes along for free. Outside a terminal it emits `command`
+(see above), so `Caps+Left` is a word left exactly as `Ctrl+Left` is --
+which is the intent, Caps being a duplicate of Ctrl rather than its own thing.
+
+**Terminals are excluded**, like rule 3. There, `Ctrl+Left` reaches Ghostty as
+`Ctrl+Left` and becomes the escape sequence zsh and nvim expect -- the same
+thing it would be on Linux. Rewriting it to `Option+Left` would break that for
+no gain.
 
 ## The swap does not disturb the window-manager binds
 

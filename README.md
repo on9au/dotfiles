@@ -1098,6 +1098,8 @@ reasoning, including what each rule costs.
 | **L-Opt + Space** | previous input source | `SUPER+Space` (fcitx5) |
 | **Cmd + Space** | Raycast launcher | `ALT+Space` (fuzzel) |
 | **Cmd / Ctrl + Tab** | next tab — the app switcher is removed | `Ctrl+Tab` |
+| **Ctrl + arrows** | move by word (and `+Shift` selects) | `Ctrl+arrows` |
+| **Cmd + arrows** | line / document jumps, as on a stock Mac | `Home` / `End` |
 
 **Left Option is the modifier because muscle memory is positional.** The
 bottom rows do not line up:
