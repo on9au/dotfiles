@@ -1,6 +1,6 @@
 # Karabiner-Elements
 
-Four rules, all there to make a Mac keyboard behave like the Linux one this
+Five rules, all there to make a Mac keyboard behave like the Linux one this
 repo is really built around. `karabiner.json` is JSON and can't hold comments,
 hence this file.
 
@@ -10,6 +10,7 @@ hence this file.
 | **Caps Lock -> Escape** | for nvim, and `mode-keys vi` in `~/.tmux.conf`. macOS-only -- Linux leaves `kb_options` empty |
 | **Ctrl <-> Cmd** | copy/paste/quit/tabs move to Control, like every Linux desktop. Terminals excluded |
 | **Cmd+Space in terminals** | patches one hole the exclusion above opens -- see below |
+| **Cmd+Tab** | no app switcher; Tab cycles tabs the Linux way |
 
 ## Why Left Option is the modifier
 
@@ -92,6 +93,36 @@ from a swapped modifier needs a rule like this one, or it dies in terminals.**
 A chord holding both Ctrl and Cmd does not, being symmetric, and neither does
 anything built on hyper, since that rule has no app condition at all.
 
+## Why Cmd+Tab is gone
+
+Two reasons, and the second is the real one.
+
+It is redundant: AeroSpace already switches windows on `L-Opt+hjkl` and
+workspaces on `L-Opt+1..0`, across applications, so a separate
+application-only switcher adds nothing.
+
+More to the point, it was **stealing next-tab.** On both Linux and stock
+macOS, cycling tabs in a browser is `Ctrl+Tab`. Under the swap, physical
+Ctrl+Tab emits `Cmd+Tab`, so the app switcher grabbed it before Firefox ever
+saw it -- and the real `Ctrl+Tab` ended up on physical Cmd+Tab, which is not
+somewhere anyone would think to look.
+
+So this rule maps `Cmd+Tab` back to `Ctrl+Tab`. The result is that **both**
+physical Ctrl+Tab and physical Cmd+Tab cycle tabs, and neither reaches the
+app switcher, which is exactly the intent.
+
+Deliberately unconditional, unlike rule 3. Terminals are exempt from the swap
+but not from this: without the rule, Cmd+Tab would still summon the switcher
+in Ghostty alone. Nothing in `~/.tmux.conf` or `ghostty/config` binds Tab, so
+there is nothing there to collide with.
+
+`L-Opt+Tab` is untouched -- it is AeroSpace's `workspace-back-and-forth`, and
+it rides on hyper, whose rule has no app condition and no Command in it.
+
+There is no supported `defaults` key for disabling the application switcher;
+it lives in the Dock and WindowServer rather than in symbolichotkeys. A
+Karabiner rule is the way to do it.
+
 ## The swap does not disturb the window-manager binds
 
 Two independent reasons, either one sufficient:
@@ -135,6 +166,7 @@ Worth checking once it is running, in this order -- each isolates one rule:
 | `Ctrl+C` | Firefox | copies |
 | `Ctrl+C` | Ghostty | interrupts, does **not** copy |
 | `Cmd+Space` | Ghostty | opens Raycast, **not** Spotlight |
+| `Ctrl+Tab` | Firefox, 2+ tabs | next tab, **no** app switcher |
 | Caps Lock | nvim insert mode | leaves insert mode |
 
 **Karabiner-EventViewer** (installed alongside) shows exactly what each press

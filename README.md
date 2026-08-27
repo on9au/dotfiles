@@ -1096,6 +1096,7 @@ reasoning, including what each rule costs.
 | **Globe / Fn** | cycles input source (AU / Chinese / Japanese) | — |
 | **L-Opt + Space** | previous input source | `SUPER+Space` (fcitx5) |
 | **Cmd + Space** | Raycast launcher | `ALT+Space` (fuzzel) |
+| **Cmd / Ctrl + Tab** | next tab — the app switcher is removed | `Ctrl+Tab` |
 
 **Left Option is the modifier because muscle memory is positional.** The
 bottom rows do not line up:

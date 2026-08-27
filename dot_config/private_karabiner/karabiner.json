@@ -163,6 +163,34 @@
                 ]
               }
             ]
+          },
+          {
+            "description": "No Cmd+Tab app switcher; Tab cycles tabs like Linux",
+            "manipulators": [
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "tab",
+                  "modifiers": { "mandatory": ["command", "shift"] }
+                },
+                "to": [
+                  {
+                    "key_code": "tab",
+                    "modifiers": ["left_control", "left_shift"]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "tab",
+                  "modifiers": { "mandatory": ["command"] }
+                },
+                "to": [
+                  { "key_code": "tab", "modifiers": ["left_control"] }
+                ]
+              }
+            ]
           }
         ]
       }
