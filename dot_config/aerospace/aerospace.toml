@@ -2,7 +2,7 @@
 # See ../hypr/binds.lua and ../hypr/looknfeel.lua for what this is ported
 # from, and .chezmoiignore for why this file only lands on darwin.
 #
-# Mod key is hyper: Caps Lock, held. See ../karabiner/README.md for how that
+# Mod key is hyper: LEFT OPTION, held. See ../karabiner/README.md for how that
 # is built and why the binds below still work without it.
 #
 # Getting here took two steps. cmd is claimed system-wide (Cmd+Q, Cmd+W,
@@ -14,17 +14,32 @@
 # symbol in every text field on the system.
 #
 # That left ctrl-alt-cmd, which macOS claims nothing on. Three modifiers is a
-# lot to hold, so Karabiner maps Caps Lock to exactly that chord -- one key,
-# the way SUPER is one key in binds.lua. shift is deliberately NOT part of it,
-# so it stays free to pair with hyper the way SUPER+SHIFT does on Linux.
+# lot to hold, so Karabiner maps one key to exactly that chord -- the way
+# SUPER is one key in binds.lua. shift is deliberately NOT part of it, so it
+# stays free to pair with hyper the way SUPER+SHIFT does on Linux.
 #
-# So: `ctrl-alt-cmd-h` below is Caps+h, and `ctrl-alt-cmd-shift-h` is
-# Caps+Shift+h -- matching SUPER+H and SUPER+SHIFT+H in binds.lua one to one.
+# Which key: left Option, because the bottom rows do not line up and muscle
+# memory is positional. PC is [Ctrl][Super][Alt], Mac is [Ctrl][Opt][Cmd] --
+# the key where SUPER lives on a PC *is* Option. Grabbing only the left one
+# leaves right Option intact for the text-modifier duty described above.
+# (Caps Lock held was the earlier answer here; it is now plain Escape.)
+#
+# So: `ctrl-alt-cmd-h` below is L-Opt+h, and `ctrl-alt-cmd-shift-h` is
+# L-Opt+Shift+h -- matching SUPER+H and SUPER+SHIFT+H in binds.lua one to one.
 #
 # Not everything in binds.lua has an equivalent here -- noted per bind below.
 # Skipped entirely because macOS already covers it natively, no rebind
-# needed: screenshots (Cmd+Shift+3/4/5), emoji picker (Ctrl+Cmd+Space),
-# media keys, notification centre (click the clock).
+# needed: screenshots, emoji picker, media keys, notification centre (click
+# the clock).
+#
+# Two of those shift under Karabiner's Ctrl<->Cmd swap, so their printed
+# shortcuts are not what you press:
+#
+#   screenshots    Cmd+Shift+3/4/5   ->  Ctrl+Shift+3/4/5
+#   emoji picker   Ctrl+Cmd+Space    ->  unchanged (symmetric chord)
+#
+# Same reason the binds below survive the swap: a chord holding both Ctrl and
+# Cmd maps onto itself. One holding only Cmd does not.
 
 config-version = 2
 

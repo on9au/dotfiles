@@ -1,49 +1,88 @@
 # Karabiner-Elements
 
-Exists for exactly one rule: **Caps Lock is the hyper key.** It's what gives
-AeroSpace the single-key mod that `SUPER` already is on Linux -- see
-`../aerospace/aerospace.toml` for the binds and `../hypr/binds.lua` for the
-Hyprland original they're ported from. `karabiner.json` is JSON and can't hold
-comments, hence this file.
+Three rules, all there to make a Mac keyboard behave like the Linux one this
+repo is really built around. `karabiner.json` is JSON and can't hold comments,
+hence this file.
 
-## Why not just use a real modifier
+| rule | what it does |
+| --- | --- |
+| **Left Option -> hyper** | held, sends `ctrl+opt+cmd` -- the single-key `SUPER` that drives AeroSpace |
+| **Caps Lock -> Escape** | for nvim, and `mode-keys vi` in `~/.tmux.conf`. macOS-only -- Linux leaves `kb_options` empty |
+| **Ctrl <-> Cmd** | copy/paste/quit/tabs move to Control, like every Linux desktop. Terminals excluded |
 
-There is no free single modifier on a Mac. `cmd` is claimed system-wide, and
-bare `alt` is claimed by macOS as a *text* modifier (Option+arrows move by
-word, Option+letter types dead keys and symbols) -- a global grab on it breaks
-typing everywhere, which is what this setup originally did and why it moved.
-Caps Lock is the only key on the board macOS assigns nothing important to.
+## Why Left Option is the modifier
+
+Muscle memory is positional, not nominal. The bottom rows do not line up:
+
+    PC/Linux:  [Ctrl] [Super] [Alt ] [Space]
+    Mac:       [Ctrl] [Opt  ] [Cmd ] [Space]
+
+The key sitting where `SUPER` lives on a PC is **Option**, so that is the one
+mapped to hyper. Reaching for `SUPER+H` lands on the right physical key with
+no retraining, and `../aerospace/aerospace.toml` binds it to `focus left` --
+the same thing `../hypr/binds.lua` binds `SUPER+H` to.
+
+The cost is real and worth stating: **left Option stops being a text
+modifier.** macOS uses Option to type symbols (`Opt+3` -> `#`) and to move
+word-wise with the arrows. Only the left key is grabbed, so **right Option
+still does all of that** -- the loss is one of two keys, not the function.
+
+Caps Lock held used to be the hyper key here, and both were briefly on offer.
+Left Option won on position. Caps Lock kept the half that has nothing to do
+with the window manager: tapped, it is Escape.
 
 ## Why hyper is ctrl+opt+cmd and not ctrl+opt+cmd+shift
 
 The usual "hyper" recipe folds `shift` in too. That would be wrong here: the
 Hyprland binds this mirrors use `SUPER` for focus and `SUPER+SHIFT` for move,
-so `shift` has to stay free to act as the second half of the pair. Held Caps
-Lock therefore sends three modifiers, not four, and `Caps+shift+h` cleanly
-reaches AeroSpace's `ctrl-alt-cmd-shift-h`.
+so `shift` has to stay free to act as the second half of the pair. Held Option
+therefore sends three modifiers, not four, and `L-Opt+shift+h` cleanly reaches
+AeroSpace's `ctrl-alt-cmd-shift-h`.
 
 `ctrl+opt+cmd` is unclaimed on macOS. The near misses all drop one of the
 three: Ctrl+Cmd+Space (emoji), Ctrl+Cmd+F (fullscreen), Cmd+Opt+Esc (force
 quit). VoiceOver's VO key is Ctrl+Opt, but only while VoiceOver is running.
 
-## Tap vs hold
+## Why the Ctrl/Cmd swap excludes terminals
 
-Tapped alone, Caps Lock sends **Escape** -- the standard arrangement for a
-vim/nvim setup, and this repo is one (`../nvim`, plus `mode-keys vi` in
-`~/.tmux.conf`). The trade is that you lose Caps Lock as Caps Lock. To get it
-back, change `to_if_alone` in `karabiner.json` from `escape` to `caps_lock`;
-to make hold-only, delete the `to_if_alone` block entirely.
+Swapping the two everywhere would put `Ctrl+C` on the Command key -- and in a
+terminal `Ctrl+C` is not "copy", it is SIGINT. Losing the interrupt to a
+modifier swap is not a trade worth making, so every terminal emulator is
+listed under `frontmost_application_unless` and keeps stock macOS behaviour:
+`Ctrl+C` interrupts, `Cmd+C`/`Cmd+V` copy and paste.
 
-`basic.to_if_alone_timeout_milliseconds` (200) is the cutoff between the two:
-press and release inside 200 ms and it's Escape, hold longer and it's hyper.
+`../ghostty/config` already covers the Linux terminal idiom on its own --
+`copy-on-select = true` and `ctrl+shift+v` to paste, exactly as a Linux
+terminal does -- so the exclusion costs nothing there.
+
+This per-app carve-out is the whole reason the swap lives in Karabiner rather
+than in **System Settings > Keyboard > Keyboard Shortcuts > Modifier Keys**.
+That panel can swap Control and Command globally in two clicks, but it is all
+or nothing, with no way to exempt an application.
+
+Editors are deliberately *not* excluded. With the swap on, VS Code gets
+`Ctrl+C`/`Ctrl+P`/`Ctrl+Shift+P`, which is its Linux keymap.
+
+## The swap does not disturb the window-manager binds
+
+Two independent reasons, either one sufficient:
+
+1. **The chord is symmetric.** `ctrl-alt-cmd` contains both swapped keys, so
+   exchanging them maps the set onto itself. Whatever else changes,
+   `{ctrl, opt, cmd}` is still `{ctrl, opt, cmd}`.
+2. **Karabiner does not re-process its own output.** Events a manipulator
+   emits in `to` go to the virtual keyboard, not back through the
+   complex-modification pipeline, so the hyper rule's `ctrl+opt+cmd` is never
+   seen by the swap rule.
 
 ## The binds work without Karabiner
 
 Nothing in `aerospace.toml` depends on this file. The binds are plain
 `ctrl-alt-cmd-*`, so physically holding Control+Option+Command reaches all of
-them whether Karabiner is running or not. Caps Lock is a convenience alias for
-that chord, not a prerequisite -- so a machine without Karabiner, or one where
-the driver extension hasn't been approved yet, still has a working WM.
+them whether Karabiner is running or not. Left Option is a convenience alias
+for that chord, not a prerequisite -- so a machine without Karabiner, or one
+where the driver extension hasn't been approved yet, still has a working WM
+(and stock macOS Cmd shortcuts, since the swap is off too).
 
 ## Setup that can't be scripted
 
@@ -56,6 +95,20 @@ password and two approvals in System Settings that no script can grant:
 Then approve the driver extension (System Settings > General > Login Items &
 Extensions > Driver Extensions) and grant Input Monitoring to
 `Karabiner-Elements` and `karabiner_grabber` when prompted.
+
+Worth checking once it is running, in this order -- each isolates one rule:
+
+| press | in | expect |
+| --- | --- | --- |
+| `L-Opt+2` | anywhere | AeroSpace switches to workspace 2 |
+| `L-Opt+shift+2` | anywhere | focused window moves to workspace 2 |
+| `R-Opt+3` | any text field | types `#` (right Option untouched) |
+| `Ctrl+C` | Firefox | copies |
+| `Ctrl+C` | Ghostty | interrupts, does **not** copy |
+| Caps Lock | nvim insert mode | leaves insert mode |
+
+**Karabiner-EventViewer** (installed alongside) shows exactly what each press
+resolves to, which is the fastest way to debug a rule that does not fire.
 
 ## Drift
 
