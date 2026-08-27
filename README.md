@@ -1022,11 +1022,29 @@ brew install \
   sketchybar borders
 
 brew install --cask \
-  ghostty aerospace karabiner-elements font-fira-code-nerd-font
+  ghostty aerospace karabiner-elements font-fira-code-nerd-font raycast
 
 brew services start sketchybar
 brew services start borders
 ```
+
+Raycast needs three things set by hand after install, none of them scriptable
+(its settings live in a private store, not a plist worth writing):
+
+- **Hotkey: Left Option + Space.** The launcher is `ALT + Space` on Linux
+  (`binds.lua`), and since left Option is hyper here, that is the identical
+  physical motion — it reaches Raycast as `ctrl+opt+cmd+Space`, which nothing
+  in `aerospace.toml` binds. Press the combination into Raycast's recorder and
+  it captures the whole chord.
+- **Do not accept the `Cmd+Space` default it offers during onboarding.** Under
+  the Ctrl<->Cmd swap that is physically Ctrl+Space — a motion matching
+  neither Linux nor stock macOS — and it still collides with Spotlight.
+- **Disable its Window Management extension.** It does AeroSpace's job, and
+  two window managers issuing move/resize at the same windows fight. AeroSpace
+  is the one wired into the workspaces and SketchyBar.
+
+The emoji picker is `Ctrl+Cmd+Space`, one modifier off the hotkey above (which
+adds Option). Distinct chords, but a sloppy press gets emoji.
 
 `tree-sitter-cli` is the CLI, not the `tree-sitter` library neovim pulls in as
 a dependency — nvim-treesitter needs the former and `:checkhealth` fails
