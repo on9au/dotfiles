@@ -13,6 +13,10 @@ system
 # reason as `system` above: without this, chezmoi would create ~/docs/.
 docs
 
+# Same again, and this one was actually happening: every apply dropped a full
+# copy of this repo's README into $HOME. Prose, not a dotfile.
+README.md
+
 # ---------------------------------------------------------------------------
 # Per-OS targets.
 #

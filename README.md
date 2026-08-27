@@ -4,6 +4,21 @@ its *my* dotfiels
 
 managed with chezmoi :3
 
+One source tree, four targets. `.chezmoiignore` decides which half of it lands
+where — the compositor configs and the shell configs are kept apart there, per
+OS, with WSL detected on the kernel release string rather than a hostname.
+
+| target | window manager | notes |
+| --- | --- | --- |
+| Arch desktop + laptop | Hyprland | the main setup — [below](#hyprland-specific) |
+| MacBook Pro | AeroSpace | [macOS specific](#macos-specific) |
+| Windows work laptop (`G3JC7G4`) | GlazeWM | `.glzr`, undocumented so far |
+| WSL | none | shell half only: zsh, tmux, nvim |
+
+**Everything lives on the `hyprland` branch, not `main`.** `main` is far
+behind and has no macOS or Windows support at all, so clone with
+`chezmoi init --branch hyprland …`.
+
 ## Machine notes
 
 `docs/` holds write-ups of hardware and OS problems that took real work to pin
@@ -956,3 +971,215 @@ systemctl --user restart app-org.fcitx.Fcitx5@autostart.service   # after change
 Plasma configs (`kdeglobals`, `kwinrc`, …) are still in here and still
 untracked-or-ignored as before. Nothing in the Hyprland setup touches them, so
 both sessions remain usable while the migration settles.
+
+## macOS specific
+
+This branch also lands on a 14" MacBook Pro (M5, macOS 26). There is no
+Wayland here, so none of it is a literal port — it is the closest analog stack
+macOS has, config for config:
+
+| Linux / Hyprland | macOS | config |
+| --- | --- | --- |
+| Hyprland | AeroSpace | `.config/aerospace` |
+| waybar | SketchyBar | `.config/sketchybar` |
+| `looknfeel.lua` borders | JankyBorders | `.config/borders` |
+| kitty | Ghostty | `.config/ghostty` |
+| `kb_options` in `input.lua` | Karabiner-Elements | `.config/karabiner` |
+| `repeat_rate` / `repeat_delay` | `darwin-key-repeat.sh` | `run_onchange_…` |
+
+Ghostty rather than kitty for one reason: **background blur.** kitty's blur is
+Wayland-only (wlroots/KWin) and is a silent no-op on macOS; Ghostty implements
+it through `NSVisualEffectView`. Linux keeps kitty, and `.chezmoiignore` keeps
+each half off the other OS — see the `darwin` blocks there.
+
+### Bring-up
+
+**Clone the right branch.** `origin/HEAD` is `main`, and `main` has none of
+this — no AeroSpace, no SketchyBar, no Ghostty, no per-OS `.chezmoiignore`
+rules. A plain `chezmoi init` gets a nearly empty macOS config:
+
+```bash
+chezmoi init --branch hyprland https://github.com/on9au/dotfiles.git
+```
+
+Then [Homebrew](https://brew.sh), and:
+
+```bash
+# sketchybar + borders, and aerospace, live in third-party taps
+brew tap FelixKratz/formulae
+brew tap nikitabobko/tap
+
+# Homebrew 6 refuses to load a third-party formula until its tap is trusted.
+# Without this the install aborts with "Refusing to load formula … from
+# untrusted tap" and nothing in the whole command gets installed.
+brew trust felixkratz/formulae
+brew trust nikitabobko/tap
+
+brew install \
+  chezmoi antidote starship tmux gh go fnm \
+  neovim tree-sitter-cli ripgrep fd fzf lazygit \
+  imagemagick ghostscript tectonic \
+  sketchybar borders
+
+brew install --cask \
+  ghostty aerospace karabiner-elements font-fira-code-nerd-font
+
+brew services start sketchybar
+brew services start borders
+```
+
+`tree-sitter-cli` is the CLI, not the `tree-sitter` library neovim pulls in as
+a dependency — nvim-treesitter needs the former and `:checkhealth` fails
+without it.
+
+`imagemagick`, `ghostscript` and `tectonic` are Snacks.image's rendering
+chain (raster, PDF, LaTeX). `lazygit` backs `Snacks.lazygit`.
+
+Then the pieces brew does not cover:
+
+```bash
+# node — nvim's LSPs, and mmdc below
+fnm install --lts
+
+# mermaid-cli: plugins/diagrams.lua shells out to `mmdc`
+npm i -g @mermaid-js/mermaid-cli
+
+# tmux plugins
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+~/.tmux/plugins/tpm/bin/install_plugins
+```
+
+`npm` will warn that it blocked puppeteer's postinstall script, which sounds
+like it broke mmdc's headless browser. It generally has not — puppeteer falls
+back to a Chrome already installed on the machine. Check rather than assume:
+
+```bash
+printf 'graph TD\n  A-->B\n' > /tmp/t.mmd && mmdc -i /tmp/t.mmd -o /tmp/t.png
+```
+
+If that does fail, reinstall with `npm i -g --allow-scripts=puppeteer
+@mermaid-js/mermaid-cli`.
+
+### Keyboard
+
+The point of this section is to type on a Mac the way you type on Linux.
+Karabiner does all of it; `.config/karabiner/README.md` carries the full
+reasoning, including what each rule costs.
+
+| held / tapped | does | replaces |
+| --- | --- | --- |
+| **Left Option** | hyper (`ctrl+opt+cmd`) — the AeroSpace mod | `SUPER` |
+| **Caps Lock** | Escape | nothing — Linux leaves `kb_options` empty |
+| **Control** | Command, everywhere except terminals | — |
+
+**Left Option is the modifier because muscle memory is positional.** The
+bottom rows do not line up:
+
+```
+PC/Linux:  [Ctrl] [Super] [Alt ] [Space]
+Mac:       [Ctrl] [Opt  ] [Cmd ] [Space]
+                    ^
+       the key where SUPER lives is Option
+```
+
+So `SUPER+H` on Linux and `L-Opt+H` here are the same physical motion, and
+both mean `focus left`. Only the **left** Option is grabbed — right Option
+still types `Opt+3` → `#` and still moves word-wise with the arrows.
+
+**Control and Command are swapped** so `Ctrl+C`/`Ctrl+V`/`Ctrl+T`/`Ctrl+W`
+work the way they do on every Linux desktop — *except in terminals*, which are
+excluded by bundle ID so `Ctrl+C` stays SIGINT. Ghostty needs no help here:
+`copy-on-select` and `ctrl+shift+v` already make it behave like a Linux
+terminal.
+
+Two knock-on effects worth knowing before you go hunting for a bug:
+
+- macOS's own screenshot shortcuts move with the swap: **`Ctrl+Shift+3/4/5`**,
+  not `Cmd+Shift+3/4/5`.
+- Anything holding *both* Ctrl and Cmd is unaffected, because swapping the two
+  maps the pair onto itself. That covers the emoji picker (`Ctrl+Cmd+Space`)
+  and, more importantly, every `ctrl-alt-cmd-*` bind in `aerospace.toml`.
+
+The swap lives in Karabiner rather than **System Settings → Keyboard →
+Modifier Keys** purely for that terminal exclusion — the built-in panel is
+global, with no per-app exemption.
+
+None of the AeroSpace binds *require* Karabiner. They are plain
+`ctrl-alt-cmd-*`, so physically holding Control+Option+Command reaches all of
+them on a machine where the driver extension has not been approved yet.
+
+### The bar has to match the display
+
+`sketchybarrc`'s `height`, `notch_width` and `notch_display_height` are
+measured from one specific panel. **They do not transfer between Macs** — this
+config moved from a 15" Air to a 14" Pro and every one of the three was wrong:
+
+| | 15" Air | 14" Pro |
+| --- | --- | --- |
+| screen | 1710×1107 pt | 1512×982 pt |
+| safe-area top | 38 pt | 32 pt |
+| notch width | 209 pt | 185 pt |
+
+Symptoms of not re-measuring are a bar noticeably taller than the real menu
+bar, and a notch mask wide enough to swallow items either side of the cutout.
+Re-measure with:
+
+```bash
+swift - <<'EOF'
+import AppKit
+let s = NSScreen.main!
+print("frame:", s.frame)
+print("safeAreaInsets top:", s.safeAreaInsets.top)   // -> bar height
+if let l = s.auxiliaryTopLeftArea, let r = s.auxiliaryTopRightArea {
+    print("notch width:", r.minX - l.maxX)           // -> notch_width
+}
+EOF
+```
+
+`gaps.outer.top` in `aerospace.toml` does **not** need updating alongside it,
+and must not have the bar height added to it. AeroSpace tiles inside
+`NSScreen.visibleFrame`, which has already subtracted the strip the bar sits
+in — adding it back double-counts. It is plain `12`, the same as the other
+three edges, and it stayed correct across the 38 → 32 change.
+
+The clock is deliberately not `position=center`: true screen centre falls
+*inside* the notch's excluded range, so a centred item renders behind the
+physical cutout and never appears at all.
+
+### Permissions that cannot be scripted
+
+`chezmoi apply` writes every file, but three approvals need a human:
+
+1. **AeroSpace** — Accessibility, on first launch. Without it the WM starts
+   and does nothing at all.
+2. **Karabiner** — an admin password at install, then the driver extension
+   under *General → Login Items & Extensions → Driver Extensions*, plus Input
+   Monitoring for `Karabiner-Elements` and `karabiner_grabber`.
+3. **Log out and back in** after the first apply, so
+   `run_onchange_darwin-key-repeat.sh`'s `NSGlobalDomain` values reach apps
+   that were already running.
+
+That script is the macOS half of `input.lua`'s `repeat_rate`/`repeat_delay`.
+Its units are 15 ms ticks, not milliseconds, so the Linux numbers do not
+transfer literally — the arithmetic is in the script's header comment. The
+piece that matters most is `ApplePressAndHoldEnabled = false`: left at its
+default, holding a key pops the accent picker instead of repeating, so held
+`hjkl` in nvim does nothing.
+
+### Not ported
+
+Dropped because macOS has no equivalent to port *to*, not by oversight:
+hypridle/hyprlock (`CGSession -suspend` is a straight lock, with no idle
+daemon to tell), the power menu, swaync, fcitx5, `power-profiles-daemon`,
+temperature (no stable sensor path), and SketchyBar's missing systray — which
+is also why Steam is absent from `aerospace/autostart.sh` where it exists in
+`hosts/desktop/autostart.lua`, having been tray-only there.
+
+AeroSpace has no equivalent for centring a floating window, pinning above
+workspaces, pseudo-tiling, the scratchpad, or scroll-to-switch-workspace.
+`resize smart ±60` is an approximation of `binds.lua`'s per-direction resize —
+AeroSpace resizes by dimension, not by direction.
+
+`norg` is a permanent `:checkhealth` warning, not a local misconfiguration:
+nvim-treesitter has no parser registered under that name, so Snacks' hardcoded
+check list can only ever warn.
