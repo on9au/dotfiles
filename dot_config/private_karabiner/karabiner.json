@@ -135,6 +135,34 @@
                 ]
               }
             ]
+          },
+          {
+            "description": "Terminals: Command+Space still reaches the launcher",
+            "manipulators": [
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "spacebar",
+                  "modifiers": { "mandatory": ["command"] }
+                },
+                "to": [
+                  { "key_code": "spacebar", "modifiers": ["left_control"] }
+                ],
+                "conditions": [
+                  {
+                    "type": "frontmost_application_if",
+                    "bundle_identifiers": [
+                      "^com\\.mitchellh\\.ghostty$",
+                      "^com\\.apple\\.Terminal$",
+                      "^com\\.googlecode\\.iterm2$",
+                      "^net\\.kovidgoyal\\.kitty$",
+                      "^com\\.github\\.wez\\.wezterm$",
+                      "^org\\.alacritty$"
+                    ]
+                  }
+                ]
+              }
+            ]
           }
         ]
       }

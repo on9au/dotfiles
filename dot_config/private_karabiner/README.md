@@ -1,6 +1,6 @@
 # Karabiner-Elements
 
-Three rules, all there to make a Mac keyboard behave like the Linux one this
+Four rules, all there to make a Mac keyboard behave like the Linux one this
 repo is really built around. `karabiner.json` is JSON and can't hold comments,
 hence this file.
 
@@ -9,6 +9,7 @@ hence this file.
 | **Left Option -> hyper** | held, sends `ctrl+opt+cmd` -- the single-key `SUPER` that drives AeroSpace |
 | **Caps Lock -> Escape** | for nvim, and `mode-keys vi` in `~/.tmux.conf`. macOS-only -- Linux leaves `kb_options` empty |
 | **Ctrl <-> Cmd** | copy/paste/quit/tabs move to Control, like every Linux desktop. Terminals excluded |
+| **Cmd+Space in terminals** | patches one hole the exclusion above opens -- see below |
 
 ## Why Left Option is the modifier
 
@@ -63,6 +64,34 @@ or nothing, with no way to exempt an application.
 Editors are deliberately *not* excluded. With the swap on, VS Code gets
 `Ctrl+C`/`Ctrl+P`/`Ctrl+Shift+P`, which is its Linux keymap.
 
+## The hole the terminal exclusion opens, and the patch
+
+Excluding terminals is right for `Ctrl+C`, but it is an *app-wide* exclusion,
+and that has a consequence worth stating plainly: **every chord behaves
+differently inside a terminal than outside it.**
+
+That is invisible for app shortcuts, which are per-app anyway. It is not
+invisible for a global hotkey. The launcher is Command+Space, which outside a
+terminal the swap turns into `Ctrl+Space` -- what Raycast listens for. Inside
+Ghostty the swap is off, so the same press stays `Cmd+Space`, Raycast never
+sees it, and Spotlight answers instead. The launcher silently stops working in
+the one app you are most likely to launch things from.
+
+Hence the fourth rule: in the same bundle list, and *only* for the spacebar
+carrying Command, emit `Ctrl+Space` anyway. Nothing else about the terminal
+exclusion changes -- `Ctrl+C` is not touched, because that rule matches
+`spacebar` and nothing else.
+
+Safe here because `Ctrl+Space` is unclaimed in this terminal stack: the tmux
+prefix is `C-a` (`~/.tmux.conf`), nvim binds nothing to it, and ghostty's only
+keybind is `ctrl+shift+v`. Check those three before adding a second chord to
+this rule.
+
+The general shape of the problem is worth remembering: **a global hotkey built
+from a swapped modifier needs a rule like this one, or it dies in terminals.**
+A chord holding both Ctrl and Cmd does not, being symmetric, and neither does
+anything built on hyper, since that rule has no app condition at all.
+
 ## The swap does not disturb the window-manager binds
 
 Two independent reasons, either one sufficient:
@@ -105,6 +134,7 @@ Worth checking once it is running, in this order -- each isolates one rule:
 | `R-Opt+3` | any text field | types `#` (right Option untouched) |
 | `Ctrl+C` | Firefox | copies |
 | `Ctrl+C` | Ghostty | interrupts, does **not** copy |
+| `Cmd+Space` | Ghostty | opens Raycast, **not** Spotlight |
 | Caps Lock | nvim insert mode | leaves insert mode |
 
 **Karabiner-EventViewer** (installed alongside) shows exactly what each press
