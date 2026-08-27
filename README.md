@@ -1031,20 +1031,24 @@ brew services start borders
 Raycast needs three things set by hand after install, none of them scriptable
 (its settings live in a private store, not a plist worth writing):
 
-- **Hotkey: Left Option + Space.** The launcher is `ALT + Space` on Linux
-  (`binds.lua`), and since left Option is hyper here, that is the identical
-  physical motion — it reaches Raycast as `ctrl+opt+cmd+Space`, which nothing
-  in `aerospace.toml` binds. Press the combination into Raycast's recorder and
-  it captures the whole chord.
-- **Do not accept the `Cmd+Space` default it offers during onboarding.** Under
-  the Ctrl<->Cmd swap that is physically Ctrl+Space — a motion matching
-  neither Linux nor stock macOS — and it still collides with Spotlight.
+- **Hotkey: press physical Command + Space into its recorder.** The launcher
+  is `ALT + Space` on Linux (`binds.lua`), and the key in Alt's position on a
+  Mac is Command — see the input-source block in
+  `run_onchange_darwin-defaults.sh` for the same positional argument in full.
+  Under the Ctrl<->Cmd swap that reaches Raycast as `Ctrl+Space`, which is
+  what its recorder will show; that is correct, not a misread.
 - **Disable its Window Management extension.** It does AeroSpace's job, and
   two window managers issuing move/resize at the same windows fight. AeroSpace
   is the one wired into the workspaces and SketchyBar.
+- Raycast asks for Accessibility on first launch, separately from AeroSpace's
+  grant.
 
-The emoji picker is `Ctrl+Cmd+Space`, one modifier off the hotkey above (which
-adds Option). Distinct chords, but a sloppy press gets emoji.
+`Ctrl+Space` is only free because `darwin-defaults.sh` moves symbolic hotkey
+60 ("Select the previous input source") off it. Stock macOS has the input
+switcher there, which is why Command+Space opens the language menu on a fresh
+machine with the swap in place. Spotlight still answers on physical
+Ctrl+Space, which emits `Cmd+Space`; Raycast supersedes it, and its onboarding
+offers to turn it off.
 
 `tree-sitter-cli` is the CLI, not the `tree-sitter` library neovim pulls in as
 a dependency — nvim-treesitter needs the former and `:checkhealth` fails
@@ -1089,6 +1093,9 @@ reasoning, including what each rule costs.
 | **Left Option** | hyper (`ctrl+opt+cmd`) — the AeroSpace mod | `SUPER` |
 | **Caps Lock** | Escape | nothing — Linux leaves `kb_options` empty |
 | **Control** | Command, everywhere except terminals | — |
+| **Globe / Fn** | cycles input source (AU / Chinese / Japanese) | — |
+| **L-Opt + Space** | previous input source | `SUPER+Space` (fcitx5) |
+| **Cmd + Space** | Raycast launcher | `ALT+Space` (fuzzel) |
 
 **Left Option is the modifier because muscle memory is positional.** The
 bottom rows do not line up:

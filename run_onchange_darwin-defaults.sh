@@ -176,6 +176,49 @@ defaults write com.apple.dock wvous-tr-corner -int 12
 defaults write com.apple.dock wvous-tr-modifier -int 0
 
 # ---------------------------------------------------------------------------
+# Input sources
+#
+# Three sources are enabled here (Australian, Simplified Chinese, Japanese),
+# so switching between them is a real key, not a curiosity. Placing it is
+# positional, the same argument as karabiner/README.md makes for the mod key:
+#
+#     Linux:  [Ctrl] [Super] [Alt ] [Space]
+#     Mac:    [Ctrl] [Opt  ] [Cmd ] [Space]
+#
+# On Linux, SUPER+Space is fcitx5 and ALT+Space is the launcher (binds.lua
+# says so explicitly). Matching by position rather than by name: the switcher
+# belongs on left Option + Space, and the launcher on Command + Space.
+#
+# Left Option is hyper, so "left Option + Space" reaches the OS as
+# ctrl+opt+cmd+Space. Modifier masks are a bitfield -- shift 131072,
+# control 262144, option 524288, command 1048576 -- so that chord is
+# 262144 + 524288 + 1048576 = 1835008. The two other parameters are the
+# character (32, space) and the key code (49, also space).
+#
+# 60 is "Select the previous input source", stock Ctrl+Space. Left alone it
+# eats Command+Space, which after the Karabiner swap emits exactly Ctrl+Space
+# -- that is the launcher slot, so 60 has to move off it rather than merely
+# be disabled.
+defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60   '<dict><key>enabled</key><true/><key>value</key><dict><key>type</key>
+   <string>standard</string><key>parameters</key><array><integer>32</integer>
+   <integer>49</integer><integer>1835008</integer></array></dict></dict>'
+
+# 61 is "Select next source in Input menu", stock Ctrl+Option+Space. Disabled
+# rather than moved: the Globe key below already cycles all three sources,
+# which is what 61 is for, and its stock chord is another one the swap makes
+# awkward to press.
+defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 61   '<dict><key>enabled</key><false/><key>value</key><dict><key>type</key>
+   <string>standard</string><key>parameters</key><array><integer>32</integer>
+   <integer>49</integer><integer>786432</integer></array></dict></dict>'
+
+# Globe/Fn cycles input sources. macOS supports this natively (it is the
+# "Press Globe key to" setting), so it needs no Karabiner rule and no chord
+# at all -- a dedicated, unambiguous key for the job, and the one physically
+# labelled with a globe. 0 = nothing, 1 = input source, 2 = emoji,
+# 3 = dictation.
+defaults write com.apple.HIToolbox AppleFnUsageType -int 1
+
+# ---------------------------------------------------------------------------
 # Dialogs
 defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
 defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
@@ -190,6 +233,15 @@ for _app in Dock Finder SystemUIServer; do
   killall "$_app" >/dev/null 2>&1 || true
 done
 unset _app
+
+# The symbolichotkeys and HIToolbox writes above are read by the window
+# server, not by an app that can be killed. activateSettings -u is the
+# supported way to make it re-read them; without it they sit dormant until
+# the next login. Guarded on existence -- it lives in a PrivateFramework and
+# is not a contract Apple owes anyone.
+_activate=/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings
+[ -x "$_activate" ] && "$_activate" -u >/dev/null 2>&1 || true
+unset _activate
 
 printf 'macOS defaults written (Dock, Finder, Spaces, trackpad, appearance,\nhot corners, text input, screenshots) -- log out for the trackpad and\nappearance keys to reach apps that were already running\n'
 
