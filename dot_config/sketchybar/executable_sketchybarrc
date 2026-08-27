@@ -33,17 +33,22 @@ PEACH=0xfffab387
 # one and needs its own margin, which then has nothing to do with
 # aerospace.toml's window gaps. Matching the real bar's flush style sidesteps
 # both problems at once: this machine's actual corner curve is left to the
-# glass, and gaps.outer.top in aerospace.toml can just be "bar height + the
-# same 12 the other three edges use" instead of an independently-tuned number.
+# glass, and gaps.outer.top in aerospace.toml can just be the same 12 the
+# other three edges use, instead of an independently-tuned number.
+#
+# Note "the same 12", not "bar height + 12" -- this comment claimed the
+# latter until the notch/gap rework. AeroSpace tiles inside visibleFrame,
+# which has already subtracted the strip this bar sits in, so adding the
+# height back double-counts it. See the long comment on gaps.outer.top.
 #
 # notch_width/notch_display_height are measured from this exact display via
-# NSScreen.main.safeAreaInsets (top=38) and auxiliaryTopLeftArea/
-# auxiliaryTopRightArea (notch spans x=751..960 -> 209pt wide) -- see the
+# NSScreen.main.safeAreaInsets (top=32) and auxiliaryTopLeftArea/
+# auxiliaryTopRightArea (notch spans x=665..850 -> 185pt wide) -- see the
 # swift snippet in the commit message if this ever needs re-measuring for a
 # different machine. topmost=window: without it, whichever app is focused
 # (Ghostty, a maximized Firefox) draws in front of the bar, not behind it.
-sketchybar --bar position=top height=38 margin=0 y_offset=0 \
-  notch_width=209 notch_display_height=38 notch_offset=0 \
+sketchybar --bar position=top height=32 margin=0 y_offset=0 \
+  notch_width=185 notch_display_height=32 notch_offset=0 \
   topmost=window \
   color="$BASE" border_width=0 blur_radius=30 \
   padding_left=8 padding_right=8 corner_radius=0
@@ -92,8 +97,8 @@ sketchybar --add item front_app left \
   --subscribe front_app front_app_switched
 
 ##### Right side #####
-# Clock is not position=center: true screen centre (x~855 of 1710pt) sits
-# inside the notch's excluded x=751..960 range, so a centered item renders
+# Clock is not position=center: true screen centre (x~756 of 1512pt) sits
+# inside the notch's excluded x=665..850 range, so a centered item renders
 # directly behind the physical cutout and never appears at all -- this is
 # what "the time doesn't exist" was.
 #

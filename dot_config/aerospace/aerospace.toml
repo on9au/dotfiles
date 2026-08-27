@@ -63,13 +63,16 @@ exec-on-workspace-change = ['/bin/bash', '-c',
 # gaps_in=5 / gaps_out=12 in looknfeel.lua, uniformly on all four edges.
 #
 # AeroSpace tiles within NSScreen.visibleFrame, not the raw screen frame --
-# that already excludes the OS's reserved top strip (currently 38pt,
-# confirmed via CGWindowListCopyWindowInfo, regardless of whether the native
-# menu bar is visually hidden), same strip SketchyBar's bar occupies. Adding
-# the bar's height into gaps.outer.top on top of that double-counts it: a
-# previous version set this to 50 (38 bar + 12) and the actual gap came out
-# to 88pt, not 50. Plain 12 here already lands windows exactly 12pt below
-# the bar.
+# that already excludes the OS's reserved top strip, regardless of whether
+# the native menu bar is visually hidden. That strip is 32pt on this 14" MBP
+# and was 38pt on the 15" Air; either way it is the same strip SketchyBar's
+# bar occupies, and sketchybarrc's `height` is set to match it.
+#
+# So this value does NOT need the bar's height added to it -- doing so
+# double-counts the strip: a previous version set this to 50 (38 bar + 12)
+# and the actual gap came out to 88pt, not 50. Plain 12 lands windows
+# exactly 12pt below the bar, and needed no change when the strip went
+# 38 -> 32.
 gaps.inner.horizontal = 5
 gaps.inner.vertical = 5
 gaps.outer.left = 12
