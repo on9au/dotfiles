@@ -105,11 +105,13 @@ reload-hyprland.sh
 # closest analog stack to Hyprland/waybar this OS has (no Wayland, so no
 # literal port is possible). Nothing on Linux/Windows reads any of these.
 #
-# Karabiner and the key-repeat script join them for the same reason: Karabiner
-# is the Caps Lock -> hyper remap that gives AeroSpace the single-key mod
-# SUPER already is on Linux, and darwin-key-repeat.sh is the NSGlobalDomain
-# half of hypr/input.lua's repeat_rate/repeat_delay. Both are macOS-only by
-# construction -- Linux does the first in kb_options and the second in
+# Karabiner and the two darwin-*.sh scripts join them for the same reason:
+# Karabiner is the left Option -> hyper remap that gives AeroSpace the
+# single-key mod SUPER already is on Linux, darwin-key-repeat.sh is the
+# NSGlobalDomain half of hypr/input.lua's repeat_rate/repeat_delay, and
+# darwin-defaults.sh is the Dock/Finder/Spaces half that has no Linux
+# counterpart at all (Hyprland has no Dock to autohide). All macOS-only by
+# construction -- Linux does the remap in kb_options and the key repeat in
 # input.lua directly.
 {{ if ne .chezmoi.os "darwin" }}
 .config/ghostty
@@ -118,4 +120,5 @@ reload-hyprland.sh
 .config/borders
 .config/karabiner
 darwin-key-repeat.sh
+darwin-defaults.sh
 {{ end }}
