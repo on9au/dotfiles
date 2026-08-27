@@ -1146,6 +1146,38 @@ The clock is deliberately not `position=center`: true screen centre falls
 *inside* the notch's excluded range, so a centred item renders behind the
 physical cutout and never appears at all.
 
+### System defaults
+
+The other half of a macOS setup does not live in files at all — Dock, Finder,
+Mission Control and text substitution are preference domains. `defaults write`
+is the only way to version them, so `run_onchange_darwin-defaults.sh` does,
+next to `darwin-key-repeat.sh` under the same `.chezmoiignore` guard.
+
+Three blocks there are load-bearing rather than taste:
+
+| setting | why |
+| --- | --- |
+| Dock `autohide` | AeroSpace tiles inside `visibleFrame`, from which a pinned Dock is subtracted just like the menu bar strip — pinned, it costs an edge of *every* workspace |
+| `mru-spaces`, `workspaces-auto-swoosh`, `expose-group-apps` off | AeroSpace indexes workspaces and does its own switching; macOS reordering Spaces or switching on app activation fights it |
+| `_HIHideMenuBar` | SketchyBar draws into the strip the native bar occupies, so hiding the real one makes it a replacement rather than a competitor for the same 32pt |
+
+Two things there are worth knowing about because macOS's own defaults are
+actively hostile:
+
+- **Bottom-right is Quick Note out of the box.** macOS ships
+  `wvous-br-corner = 14` enabled. With `focus-follows-mouse` on in
+  `aerospace.toml` the pointer gets flung at corners constantly, so this fires
+  by accident far more than it would on a stock Mac. Turned off, along with
+  the other three — except top-right, which is set to Notification Centre
+  because `_HIHideMenuBar` plus SketchyBar's `click_script`-less clock leaves
+  "click the clock" without a target.
+- **The text substitutions corrupt code.** Smart quotes break shell snippets
+  and dash substitution turns `--flag` into an en dash. Same class of problem
+  as `ApplePressAndHoldEnabled` in `darwin-key-repeat.sh`: a default that
+  assumes prose.
+
+Scroll direction is deliberately left alone.
+
 ### Permissions that cannot be scripted
 
 `chezmoi apply` writes every file, but three approvals need a human:
