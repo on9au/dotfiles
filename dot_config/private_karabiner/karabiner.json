@@ -35,7 +35,7 @@
             ]
           },
           {
-            "description": "Caps Lock -> Escape",
+            "description": "Caps Lock -> Ctrl held (as the real Ctrl key behaves), Escape tapped",
             "manipulators": [
               {
                 "type": "basic",
@@ -43,7 +43,43 @@
                   "key_code": "caps_lock",
                   "modifiers": { "optional": ["any"] }
                 },
-                "to": [{ "key_code": "escape" }]
+                "to": [{ "key_code": "left_command" }],
+                "to_if_alone": [{ "key_code": "escape" }],
+                "conditions": [
+                  {
+                    "type": "frontmost_application_unless",
+                    "bundle_identifiers": [
+                      "^com\\.mitchellh\\.ghostty$",
+                      "^com\\.apple\\.Terminal$",
+                      "^com\\.googlecode\\.iterm2$",
+                      "^net\\.kovidgoyal\\.kitty$",
+                      "^com\\.github\\.wez\\.wezterm$",
+                      "^org\\.alacritty$"
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "caps_lock",
+                  "modifiers": { "optional": ["any"] }
+                },
+                "to": [{ "key_code": "left_control" }],
+                "to_if_alone": [{ "key_code": "escape" }],
+                "conditions": [
+                  {
+                    "type": "frontmost_application_if",
+                    "bundle_identifiers": [
+                      "^com\\.mitchellh\\.ghostty$",
+                      "^com\\.apple\\.Terminal$",
+                      "^com\\.googlecode\\.iterm2$",
+                      "^net\\.kovidgoyal\\.kitty$",
+                      "^com\\.github\\.wez\\.wezterm$",
+                      "^org\\.alacritty$"
+                    ]
+                  }
+                ]
               }
             ]
           },
@@ -137,7 +173,7 @@
             ]
           },
           {
-            "description": "Terminals: Command+Space still reaches the launcher",
+            "description": "Command+Space always reaches the launcher",
             "manipulators": [
               {
                 "type": "basic",
@@ -147,19 +183,6 @@
                 },
                 "to": [
                   { "key_code": "spacebar", "modifiers": ["left_control"] }
-                ],
-                "conditions": [
-                  {
-                    "type": "frontmost_application_if",
-                    "bundle_identifiers": [
-                      "^com\\.mitchellh\\.ghostty$",
-                      "^com\\.apple\\.Terminal$",
-                      "^com\\.googlecode\\.iterm2$",
-                      "^net\\.kovidgoyal\\.kitty$",
-                      "^com\\.github\\.wez\\.wezterm$",
-                      "^org\\.alacritty$"
-                    ]
-                  }
                 ]
               }
             ]

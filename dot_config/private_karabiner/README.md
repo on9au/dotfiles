@@ -7,9 +7,9 @@ hence this file.
 | rule | what it does |
 | --- | --- |
 | **Left Option -> hyper** | held, sends `ctrl+opt+cmd` -- the single-key `SUPER` that drives AeroSpace |
-| **Caps Lock -> Escape** | for nvim, and `mode-keys vi` in `~/.tmux.conf`. macOS-only -- Linux leaves `kb_options` empty |
+| **Caps Lock** | held: Ctrl. Tapped: Escape, for nvim and `mode-keys vi` in `~/.tmux.conf` |
 | **Ctrl <-> Cmd** | copy/paste/quit/tabs move to Control, like every Linux desktop. Terminals excluded |
-| **Cmd+Space in terminals** | patches one hole the exclusion above opens -- see below |
+| **Cmd+Space** | always reaches the launcher, in or out of a terminal -- see below |
 | **Cmd+Tab** | no app switcher; Tab cycles tabs the Linux way |
 
 ## Why Left Option is the modifier
@@ -93,6 +93,48 @@ from a swapped modifier needs a rule like this one, or it dies in terminals.**
 A chord holding both Ctrl and Cmd does not, being symmetric, and neither does
 anything built on hyper, since that rule has no app condition at all.
 
+## Which Ctrl Caps Lock sends
+
+"Caps Lock is Ctrl" is ambiguous here, because rule 3 means there are two
+Ctrls. Caps Lock sends **whichever one the physical Ctrl key would have
+sent in the app you are in** -- so it is a better-placed duplicate of that
+key, not a third behaviour to learn:
+
+| in | Caps sends | so Caps+C is |
+| --- | --- | --- |
+| Firefox, Finder, anywhere else | `command` | copy |
+| Ghostty and the other terminals | `control` | SIGINT |
+
+Which is the Linux arrangement in both places, and the same split rule 3
+already makes. Two manipulators rather than one, on the same bundle list.
+
+The alternative would be sending a literal `left_control` everywhere. That is
+*not* what a Linux user means by the phrase: outside a terminal it would make
+Caps+C a macOS Control+C, which almost nothing implements, so copy would
+appear broken. It is a one-line change here if the genuine macOS Control is
+ever wanted -- drop the second manipulator and remove the first's condition.
+
+Karabiner does not re-process its own `to` output, so Caps Lock's `command`
+is *not* then swapped back to Control by rule 3. That is what lets these two
+rules coexist and why the app condition has to be repeated here rather than
+inherited.
+
+Tapped it is still Escape. `basic.to_if_alone_timeout_milliseconds` (200) is
+the cutoff: press and release inside 200 ms for Escape, hold longer for Ctrl.
+
+Two things fall out of Caps Lock now emitting a real `command` outside
+terminals, and both are already handled:
+
+- **Caps+Space** would have hit Spotlight rather than Raycast, since rule 4
+  used to be terminal-only. It is unconditional now. Physical Cmd+Space is
+  unaffected either way -- rule 3 turns that into `Ctrl+Space` before rule 4
+  could see it.
+- **Caps+Tab** is fine as-is: rule 5 was already unconditional, so it cycles
+  tabs like everything else.
+
+A pleasant accident in the terminal: the tmux prefix is `C-a`, so the prefix
+is now Caps+A.
+
 ## Why Cmd+Tab is gone
 
 Two reasons, and the second is the real one.
@@ -167,7 +209,10 @@ Worth checking once it is running, in this order -- each isolates one rule:
 | `Ctrl+C` | Ghostty | interrupts, does **not** copy |
 | `Cmd+Space` | Ghostty | opens Raycast, **not** Spotlight |
 | `Ctrl+Tab` | Firefox, 2+ tabs | next tab, **no** app switcher |
-| Caps Lock | nvim insert mode | leaves insert mode |
+| Caps Lock (tap) | nvim insert mode | leaves insert mode |
+| `Caps+C` | Firefox | copies |
+| `Caps+C` | Ghostty | interrupts |
+| `Caps+Space` | Firefox | opens Raycast, **not** Spotlight |
 
 **Karabiner-EventViewer** (installed alongside) shows exactly what each press
 resolves to, which is the fastest way to debug a rule that does not fire.

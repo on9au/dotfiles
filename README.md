@@ -1091,7 +1091,7 @@ reasoning, including what each rule costs.
 | held / tapped | does | replaces |
 | --- | --- | --- |
 | **Left Option** | hyper (`ctrl+opt+cmd`) — the AeroSpace mod | `SUPER` |
-| **Caps Lock** | Escape | nothing — Linux leaves `kb_options` empty |
+| **Caps Lock** | held: Ctrl. Tapped: Escape | nothing — Linux leaves `kb_options` empty |
 | **Control** | Command, everywhere except terminals | — |
 | **Globe / Fn** | cycles input source (AU / Chinese / Japanese) | — |
 | **L-Opt + Space** | previous input source | `SUPER+Space` (fcitx5) |
