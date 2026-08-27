@@ -1018,6 +1018,7 @@ brew trust nikitabobko/tap
 brew install \
   chezmoi antidote starship tmux gh go fnm \
   neovim tree-sitter-cli ripgrep fd fzf lazygit \
+  openssh libfido2 \
   imagemagick ghostscript tectonic \
   sketchybar borders
 
@@ -1203,6 +1204,64 @@ actively hostile:
   assumes prose.
 
 Scroll direction is deliberately left alone.
+
+### YubiKey and SSH
+
+Git is **not** affected by any of this — the remotes here are HTTPS and
+authenticate through `osxkeychain`, which Apple's git already sets as the
+system-wide `credential.helper`. There is no `~/.gitconfig` on this machine
+and none is needed; the `credential.helper libsecret` line in the Linux
+section above is Linux-only advice.
+
+What does need work is SSH, because **Apple's OpenSSH cannot talk to a FIDO
+token at all.** It advertises the key types, which makes the failure
+confusing:
+
+```
+$ ssh -Q key | grep sk        → sk-ssh-ed25519@openssh.com   (looks fine)
+$ ssh-keygen -K               → Cannot download keys without provider
+```
+
+There is no built-in provider and no middleware to point `SecurityKeyProvider`
+at — Homebrew's `libfido2` does *not* ship OpenSSH's `libsk-libfido2.dylib`,
+since that is built as part of OpenSSH rather than of libfido2.
+
+`brew install openssh` is the fix. It is built against `libfido2`, so it has
+the provider compiled in, the same arrangement Arch's package uses via
+`ssh-sk-helper`. The difference is visible immediately:
+
+```
+$ /usr/bin/ssh-keygen -K            Cannot download keys without provider
+$ /opt/homebrew/bin/ssh-keygen -K   Enter PIN for authenticator: …
+```
+
+`.zshenv` runs `brew shellenv`, which puts `/opt/homebrew/bin` ahead of
+`/usr/bin`, so shells get the working one with no further configuration. GUI
+applications launched outside a shell do not, and will still get Apple's.
+
+With one key plugged in, the resident credential comes down the same way as on
+Linux:
+
+```bash
+cd ~/.ssh && ssh-keygen -K       # PIN, then touch
+```
+
+**The agent is a trap here, and it is the same trap as gcr-ssh-agent above.**
+`SSH_AUTH_SOCK` points at a launchd-managed **Apple** `ssh-agent`, which has
+no more FIDO support than Apple's `ssh` does. So `ssh-add -K` hands a resident
+credential to an agent that can never sign with it — and per the Linux notes,
+an agent that holds an identity shadows the handle file on disk, so this
+fails in the confusing direction.
+
+Simplest answer is not to use an agent: with the handle files present, ssh
+uses them directly and asks for a touch per connection. If the touches get
+annoying, run Homebrew's agent instead of Apple's and point `SSH_AUTH_SOCK`
+at it — the macOS equivalent of swapping gcr for OpenSSH's agent on Linux.
+
+Note `ssh-add -K` means two different things depending on which binary wins:
+"download resident keys" in Homebrew's, and the legacy
+"store passphrase in the Keychain" in Apple's (now spelled
+`--apple-use-keychain`).
 
 ### Permissions that cannot be scripted
 
