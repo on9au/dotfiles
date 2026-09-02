@@ -66,6 +66,20 @@ alias vencord='sh -c "$(curl -sS https://vencord.dev/install.sh)"'
 export CDGIT_ROOT="$HOME/Projects"
 export WINAPPS_SRC_DIR="$HOME/.local/bin/winapps-src"
 
+# cg command which sets cwd to the output of `cdgit` if `cdgit` is present
+if command -v cdgit >/dev/null 2>&1; then
+  cg() {
+    local target_dir
+    target_dir=$(cdgit "$@")
+    if [ -n "$target_dir" ]; then
+      cd "$target_dir" || return 1
+    else
+      echo "cdgit: No matching git repository found." >&2
+      return 1
+    fi
+  }
+fi
+
 # allow `#` to be used in shell
 setopt interactive_comments
 
