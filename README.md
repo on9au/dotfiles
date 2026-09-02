@@ -34,7 +34,7 @@ down — prose rather than config, so it is in `.chezmoiignore` alongside
 current packages used are:
 
 ```bash
-sudo pacman -S hyprland uwsm xdg-desktop-portal-hyprland xdg-desktop-portal-kde plasma-integration fuzzel swaync hyprlock hypridle hyprpolkitagent awww hyprshot hyprpicker cliphist wl-clipboard wtype noto-fonts-emoji qt5-wayland qt6-wayland playerctl pavucontrol networkmanager brightnessctl power-profiles-daemon htop
+sudo pacman -S hyprland uwsm xdg-desktop-portal-hyprland xdg-desktop-portal-kde plasma-integration fuzzel swaync hyprlock hypridle hyprpolkitagent awww hyprshot hyprpicker cliphist wl-clipboard wtype noto-fonts-emoji qt5-wayland qt6-wayland playerctl pavucontrol networkmanager brightnessctl power-profiles-daemon htop kdeconnect
 
 # waybar from the AUR, not the repos -- see "The Lua config gotcha" below.
 # The release build cannot switch workspaces on click with a Lua config.
@@ -475,6 +475,38 @@ patching the autostart entry alone. Check which path is live with:
 ```bash
 systemctl --user list-units --all | grep -i fcitx
 pgrep -af /usr/bin/fcitx5          # should show --disable=notificationitem
+```
+
+### KDE Connect
+
+The phone module in the bar (`custom/kdeconnect`) is a script, because waybar
+has no kdeconnect module of its own: `waybar/scripts/kdeconnect.sh`, polled
+every 10s. It shows the paired phone's battery, dims when the phone is off the
+network, and is not drawn at all until a phone is paired — so on a machine that
+has never run `kdeconnect-cli --pair` the bar looks exactly as it did before.
+
+| click | does |
+| --- | --- |
+| left | opens `kdeconnect-app` |
+| middle | sends the clipboard to the phone |
+| right | rings the phone |
+
+It reads `charge` and `isCharging` straight off D-Bus with `gdbus`, since
+`kdeconnect-cli` can pair and list devices but cannot report a battery. `gdbus`
+rather than `qdbus` because it comes from glib2, already pulled in by waybar,
+where qdbus would mean installing qt5-tools for two property reads.
+
+The daemon is **not** in `hypr/autostart.lua`, same reasoning as fcitx5 above:
+`kdeconnectd` ships `/etc/xdg/autostart/org.kde.kdeconnect.daemon.desktop`,
+which uwsm starts, and it is D-Bus activatable besides. The script checks the
+bus name has an owner rather than calling into it blind, so a machine where the
+daemon has been stopped on purpose does not get one started by its status bar.
+
+Pairing is one command per device, phone app open on the same network:
+
+```bash
+kdeconnect-cli --refresh && kdeconnect-cli --list-available
+kdeconnect-cli --pair -d <device-id>
 ```
 
 ### What starts with the session

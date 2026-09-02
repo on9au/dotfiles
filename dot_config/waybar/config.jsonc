@@ -32,6 +32,7 @@
     "backlight",
     "pulseaudio",
     "network",
+    "custom/kdeconnect",
     "power-profiles-daemon",
     "battery",
     "custom/notification"
@@ -143,6 +144,40 @@
     "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ifname}  {ipaddr}",
     "interval": 5,
     "on-click": "kitty -e nmtui"
+  },
+  // The paired phone -- reachable or not, and its battery. Waybar has no
+  // kdeconnect module of its own, so this is a custom one; scripts/kdeconnect.sh
+  // explains why it reads D-Bus directly instead of shelling out to
+  // kdeconnect-cli.
+  //
+  // It disappears in two different ways on purpose. "exec-if" drops it on a
+  // machine without kdeconnect installed (same guard as custom/notification
+  // uses for swaync), and the script prints nothing when no device is paired,
+  // which hides it on a machine that has kdeconnect but has never been paired
+  // to a phone.
+  //
+  // The interval is a poll rather than a D-Bus subscription: battery updates
+  // arrive from the phone every couple of minutes anyway, so watching for the
+  // signal would buy nothing. The click actions raise RTMIN+9 themselves so
+  // the bar does not sit stale for ten seconds after one of them.
+  "custom/kdeconnect": {
+    // "{text}", not "{}": waybar-git's fmt refuses a format that mixes a named
+    // field with a positional one, and logs "mixing manual and automatic
+    // argument indexing" rather than drawing the module at all. custom/nolock
+    // gets away with a bare "{}" because it has no {icon} beside it.
+    "format": "{icon} {text}",
+    "return-type": "json",
+    "exec-if": "which kdeconnect-cli",
+    "exec": "$HOME/.config/waybar/scripts/kdeconnect.sh status",
+    "interval": 10,
+    "signal": 9,
+    "format-icons": {
+      "connected": "󰄡",
+      "disconnected": "󰄢"
+    },
+    "on-click": "kdeconnect-app",
+    "on-click-middle": "$HOME/.config/waybar/scripts/kdeconnect.sh clipboard",
+    "on-click-right": "$HOME/.config/waybar/scripts/kdeconnect.sh ring"
   },
   // "device" is not optional here. The laptop has TWO entries in
   // /sys/class/backlight -- intel_backlight (the panel) and nvidia_0 (the

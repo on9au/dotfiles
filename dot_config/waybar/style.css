@@ -56,6 +56,7 @@ window#waybar {
 #battery,
 #idle_inhibitor,
 #custom-nolock,
+#custom-kdeconnect,
 #tray,
 #custom-fcitx5,
 #custom-notification,
@@ -212,6 +213,34 @@ window#waybar.empty .modules-left #window {
 #custom-nolock {
     color: @red;
     padding-left: 0;
+}
+
+/* ---- KDE Connect ----
+ *
+ * Colours track the phone's battery on the same thresholds as #battery above,
+ * so a phone about to die reads the same as a laptop about to die. The dim
+ * variant is a paired phone that is not on the network -- the module is hidden
+ * outright when no phone is paired at all, so this only ever means "away". */
+
+#custom-kdeconnect {
+    color: @lavender;
+}
+
+#custom-kdeconnect.disconnected {
+    color: @overlay0;
+}
+
+#custom-kdeconnect.charging {
+    color: @teal;
+}
+
+#custom-kdeconnect.warning {
+    color: @yellow;
+}
+
+#custom-kdeconnect.critical {
+    color: @red;
+    font-weight: bold;
 }
 
 #custom-notification {
