@@ -10,12 +10,19 @@ autoload -Uz compinit && compinit
 # vs Homebrew's formula, which drops antidote.zsh under
 # $HOMEBREW_PREFIX/share/antidote instead. HOMEBREW_PREFIX comes from `brew
 # shellenv` in .zshenv, which runs before this file.
-if [ -f "${ZDOTDIR:-~}/.antidote/antidote.zsh" ]; then
-  source "${ZDOTDIR:-~}/.antidote/antidote.zsh"
+# Note: ${ZDOTDIR:-~} would be wrong here -- a ~ inside double quotes stays
+# literal, so the test never matches. Use $HOME as the fallback.
+if [ -f "${ZDOTDIR:-$HOME}/.antidote/antidote.zsh" ]; then
+  source "${ZDOTDIR:-$HOME}/.antidote/antidote.zsh"
 elif [ -n "${HOMEBREW_PREFIX:-}" ] && [ -f "$HOMEBREW_PREFIX/share/antidote/antidote.zsh" ]; then
   source "$HOMEBREW_PREFIX/share/antidote/antidote.zsh"
 fi
-antidote load
+
+if (( $+functions[antidote] )); then
+  antidote load
+else
+  print -u2 "zshrc: antidote not found; skipping plugin load"
+fi
 
 # History config (omz used to set this; antidote doesn't)
 HISTFILE=~/.zsh_history
