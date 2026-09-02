@@ -1023,7 +1023,7 @@ brew install \
   sketchybar borders
 
 brew install --cask \
-  ghostty aerospace karabiner-elements font-fira-code-nerd-font raycast
+  ghostty aerospace karabiner-elements font-fira-code-nerd-font raycast orion
 
 brew services start sketchybar
 brew services start borders

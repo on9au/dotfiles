@@ -40,7 +40,7 @@ place_on() {
   # paired with --monitor/--workspace/--all as the base selector, or
   # AeroSpace rejects it outright ("Mandatory option is not specified").
   #
-  # 30s, not 10: measured Firefox taking longer than a 10s poll window on a
+  # 30s, not 10: measured the browser taking longer than a 10s poll window on a
   # cold launch (no process running yet at all) -- it missed the window and
   # landed wherever was focused instead of its target workspace.
   win_id=""
@@ -56,6 +56,6 @@ place_on() {
 }
 
 place_on com.mitchellh.ghostty Ghostty 1
-place_on org.mozilla.firefox Firefox 2
+place_on com.kagi.kagimacOS Orion 2
 place_on com.hnc.Discord Discord 6
 place_on com.spotify.client Spotify 7

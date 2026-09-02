@@ -100,8 +100,8 @@ gaps.outer.top = 12
     # -- launching -- (SUPER+Return / E / B in binds.lua)
     ctrl-alt-cmd-enter = 'exec-and-forget open -a Ghostty'
     ctrl-alt-cmd-e = 'exec-and-forget open -a Finder'
-    # Swap the app name if Safari isn't the default browser.
-    ctrl-alt-cmd-b = 'exec-and-forget open -a Safari'
+    # Swap the app name if Orion isn't the default browser.
+    ctrl-alt-cmd-b = 'exec-and-forget open -a Orion'
 
     # -- focus / move -- (both hjkl and arrows, same as binds.lua)
     ctrl-alt-cmd-h = 'focus left'

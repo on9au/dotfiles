@@ -103,7 +103,7 @@ key, not a third behaviour to learn:
 
 | in | Caps sends | so Caps+C is |
 | --- | --- | --- |
-| Firefox, Finder, anywhere else | `command` | copy |
+| Orion, Finder, anywhere else | `command` | copy |
 | Ghostty and the other terminals | `control` | SIGINT |
 
 Which is the Linux arrangement in both places, and the same split rule 3
@@ -146,7 +146,7 @@ application-only switcher adds nothing.
 
 More to the point, it was **stealing next-tab.** On both Linux and stock
 macOS, cycling tabs in a browser is `Ctrl+Tab`. Under the swap, physical
-Ctrl+Tab emits `Cmd+Tab`, so the app switcher grabbed it before Firefox ever
+Ctrl+Tab emits `Cmd+Tab`, so the app switcher grabbed it before Orion ever
 saw it -- and the real `Ctrl+Tab` ended up on physical Cmd+Tab, which is not
 somewhere anyone would think to look.
 
@@ -249,14 +249,14 @@ Worth checking once it is running, in this order -- each isolates one rule:
 | `L-Opt+2` | anywhere | AeroSpace switches to workspace 2 |
 | `L-Opt+shift+2` | anywhere | focused window moves to workspace 2 |
 | `R-Opt+3` | any text field | types `#` (right Option untouched) |
-| `Ctrl+C` | Firefox | copies |
+| `Ctrl+C` | Orion | copies |
 | `Ctrl+C` | Ghostty | interrupts, does **not** copy |
 | `Cmd+Space` | Ghostty | opens Raycast, **not** Spotlight |
-| `Ctrl+Tab` | Firefox, 2+ tabs | next tab, **no** app switcher |
+| `Ctrl+Tab` | Orion, 2+ tabs | next tab, **no** app switcher |
 | Caps Lock (tap) | nvim insert mode | leaves insert mode |
-| `Caps+C` | Firefox | copies |
+| `Caps+C` | Orion | copies |
 | `Caps+C` | Ghostty | interrupts |
-| `Caps+Space` | Firefox | opens Raycast, **not** Spotlight |
+| `Caps+Space` | Orion | opens Raycast, **not** Spotlight |
 
 **Karabiner-EventViewer** (installed alongside) shows exactly what each press
 resolves to, which is the fastest way to debug a rule that does not fire.
