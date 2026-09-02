@@ -71,7 +71,12 @@ local function javac_run(run)
     local javac = jdk and vim.fs.joinpath(jdk, "bin", "javac") or "javac"
     local java = jdk and vim.fs.joinpath(jdk, "bin", "java") or "java"
 
-    local parts = { vim.fn.shellescape(javac), "-d", "bin", "-encoding", "UTF-8" }
+    -- Mirror the jdtls javadoc checks in jdt-javadoc.prefs, so <leader>jb reports
+    -- the same gaps the editor does. doclint's `missing` group covers absent
+    -- comments and tags; `/protected` limits it to protected-and-above. These are
+    -- warnings, so an undocumented API still compiles.
+    local parts =
+      { vim.fn.shellescape(javac), "-d", "bin", "-encoding", "UTF-8", "-Xdoclint:missing/protected" }
     for _, file in ipairs(files) do
       table.insert(parts, vim.fn.shellescape(file))
     end
@@ -130,6 +135,13 @@ return {
           -- real diagnostics rather than style opinions.
           compile = {
             nullAnalysis = { mode = "automatic" },
+          },
+          -- Missing javadoc on the public/protected API is a compiler problem in
+          -- JDT, but there is no LSP setting to turn it on -- the javadoc options
+          -- exist only as Eclipse compiler preferences. Point jdtls at a .prefs
+          -- file instead. Equivalent to IntelliJ's "missing javadoc" inspection.
+          settings = {
+            url = home .. "/.config/nvim/java/jdt-javadoc.prefs",
           },
           completion = {
             importOrder = { "java", "javax", "com", "org" },
