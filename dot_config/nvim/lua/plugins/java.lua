@@ -9,6 +9,68 @@
 
 local home = os.getenv("HOME")
 
+-- Sources the project is not allowed to change: FIT2099 ships its engine under
+-- src/edu/ and forbids editing it, so a warning there can never be actioned and
+-- only buries the ones that can. Matched as a plain substring of the file path;
+-- add an entry for any other project that vendors code the same way.
+local read_only_sources = { "/src/edu/" }
+
+-- The javac side of the same rule, by package rather than path, since doclint is
+-- the only warning source the build turns on and -Xdoclint/package: is how it is
+-- scoped. Written without the leading `-`; doclint_exclusion adds it.
+local read_only_packages = { "edu.monash.*" }
+
+local function read_only(uri)
+  local path = uri and vim.uri_to_fname(uri) or ""
+  for _, fragment in ipairs(read_only_sources) do
+    if path:find(fragment, 1, true) then
+      return true
+    end
+  end
+  return false
+end
+
+--- The single -Xdoclint/package: argument covering read_only_packages.
+--- @return string
+local function doclint_exclusion()
+  local excluded = vim.tbl_map(function(package)
+    return "-" .. package
+  end, read_only_packages)
+  return "-Xdoclint/package:" .. table.concat(excluded, ",")
+end
+
+-- Errors survive the filter. Read-only code is known to compile, so an error in
+-- it is a statement about the *setup* -- an unresolved source path or runtime --
+-- and that is worth seeing. Drop the severity test to silence those too.
+local function errors_only(diagnostics)
+  return vim.tbl_filter(function(diagnostic)
+    -- severity is optional in LSP; an unranked diagnostic is kept.
+    return diagnostic.severity == nil or diagnostic.severity == vim.diagnostic.severity.ERROR
+  end, diagnostics or {})
+end
+
+-- Filtering in the handler rather than hiding warnings at display time keeps them
+-- out of vim.diagnostic altogether: no virtual text or signs, and nothing left to
+-- count in the statusline, `]d`, or <leader>xx. jdt.ls pushes diagnostics; the
+-- pull request is wrapped too, so the filter survives a jdt.ls that starts
+-- advertising diagnosticProvider.
+local function read_only_filter()
+  return {
+    ["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
+      if result and read_only(result.uri) then
+        result.diagnostics = errors_only(result.diagnostics)
+      end
+      return vim.lsp.handlers["textDocument/publishDiagnostics"](err, result, ctx, config)
+    end,
+    ["textDocument/diagnostic"] = function(err, result, ctx, config)
+      if result and result.items and read_only(vim.tbl_get(ctx, "params", "textDocument", "uri")) then
+        result.items = errors_only(result.items)
+      end
+      return vim.lsp.handlers["textDocument/diagnostic"](err, result, ctx, config)
+    end,
+  }
+end
+
 -- The unit pins Java 17 Corretto in .sdkmanrc. sdkman's auto-env only fires in an
 -- interactive shell that cd'd into the project, so if nvim was launched from
 -- anywhere else `javac` would silently be whatever `current` points at (25.0.3).
@@ -74,9 +136,18 @@ local function javac_run(run)
     -- Mirror the jdtls javadoc checks in jdt-javadoc.prefs, so <leader>jb reports
     -- the same gaps the editor does. doclint's `missing` group covers absent
     -- comments and tags; `/protected` limits it to protected-and-above. These are
-    -- warnings, so an undocumented API still compiles.
-    local parts =
-      { vim.fn.shellescape(javac), "-d", "bin", "-encoding", "UTF-8", "-Xdoclint:missing/protected" }
+    -- warnings, so an undocumented API still compiles. read_only_packages is
+    -- excluded here for the same reason it is filtered out of the editor's
+    -- diagnostics: nothing in it can be fixed.
+    local parts = {
+      vim.fn.shellescape(javac),
+      "-d",
+      "bin",
+      "-encoding",
+      "UTF-8",
+      "-Xdoclint:missing/protected",
+      vim.fn.shellescape(doclint_exclusion()),
+    }
     for _, file in ipairs(files) do
       table.insert(parts, vim.fn.shellescape(file))
     end
@@ -143,6 +214,14 @@ return {
       -- try to load the launcher script as a main class.
       if opts.cmd then
         table.insert(opts.cmd, "--java-executable=" .. home .. "/.sdkman/candidates/java/25.0.3-tem/bin/java")
+      end
+
+      -- LazyVim passes opts.jdtls the config it is about to hand to
+      -- start_or_attach, which is the one place a handler can be installed on the
+      -- jdtls client alone rather than on every server. nvim-jdtls only fills in
+      -- handlers it does not find here, so this table is left intact.
+      opts.jdtls = function(config)
+        config.handlers = vim.tbl_extend("force", config.handlers or {}, read_only_filter())
       end
 
       opts.settings = vim.tbl_deep_extend("force", opts.settings or {}, {
