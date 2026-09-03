@@ -95,6 +95,44 @@ local function javac_run(run)
   end
 end
 
+-- nvim applies .editorconfig itself and records what it applied in
+-- b:editorconfig, so read the property rather than 'shiftwidth' -- shiftwidth is
+-- 2 by LazyVim default and cannot tell "the project asked for 2" from "nobody
+-- asked". Only properties nvim understands land there, so a file with no
+-- indent_size simply reads as absent and keeps Google style.
+local warned = {}
+
+local function warn_once(key, message)
+  if not warned[key] then
+    warned[key] = true
+    vim.notify(message, vim.log.levels.WARN)
+  end
+end
+
+--- Extra google-java-format args implied by the buffer's .editorconfig.
+--- @param bufnr integer
+--- @return string[]
+local function gjf_style(bufnr)
+  local editorconfig = vim.b[bufnr].editorconfig
+  if type(editorconfig) ~= "table" then
+    return {}
+  end
+
+  if editorconfig.indent_style == "tab" then
+    warn_once("tab", ".editorconfig asks for tabs; google-java-format only emits spaces")
+    return {}
+  end
+
+  local size = tonumber(editorconfig.indent_size) or tonumber(editorconfig.tab_width)
+  if size == 4 then
+    return { "--aosp" }
+  end
+  if size and size ~= 2 then
+    warn_once("size:" .. size, ("google-java-format has no indent_size %d; using Google style (2)"):format(size))
+  end
+  return {}
+end
+
 return {
   {
     "mfussenegger/nvim-jdtls",
@@ -136,6 +174,14 @@ return {
           compile = {
             nullAnalysis = { mode = "automatic" },
           },
+          -- Formatting belongs to conform (google-java-format, below). Left on,
+          -- jdtls is a second formatter that LazyVim falls back to whenever
+          -- conform has nothing available, and it reformats to Eclipse defaults
+          -- at a width taken from 'shiftwidth' -- which looks exactly like a
+          -- successful google-java-format run and is not one. Disabled, jdtls
+          -- still answers a formatting request but returns no edits, so the
+          -- fallback becomes a no-op instead of the wrong style.
+          format = { enabled = false },
           -- Missing javadoc on the public/protected API is a compiler problem in
           -- JDT, but there is no LSP setting to turn it on -- the javadoc options
           -- exist only as Eclipse compiler preferences. Point jdtls at a .prefs
@@ -159,18 +205,33 @@ return {
     },
   },
 
-  -- google-java-format in AOSP style: 4-space indent, matching .editorconfig and
-  -- IntelliJ's default. Google style would be 2-space and contradict both.
+  -- The formatter is a hard dependency now that jdtls no longer formats: without
+  -- it a java buffer has no working formatter at all, which is the intended
+  -- failure -- a save that visibly does nothing, rather than one that quietly
+  -- writes the wrong style. `:LazyFormatInfo` names the formatter in use.
+  { "mason-org/mason.nvim", opts = { ensure_installed = { "google-java-format" } } },
+
+  -- google-java-format in true Google style: 2-space indent, 100 columns,
+  -- Google's import order. Formats on save via LazyVim's autoformat.
+  --
+  -- google-java-format has exactly two indent widths -- Google style (2) and
+  -- --aosp (4) -- and no flag for anything else. A project .editorconfig is the
+  -- stronger signal where one exists, since it is checked into the repo and
+  -- IntelliJ obeys it too, so indent_size decides which of the two is used.
+  -- Anything gjf cannot express warns once per session instead of silently
+  -- formatting against the project's own stated config.
   {
     "stevearc/conform.nvim",
     opts = {
       formatters_by_ft = {
-        java = { "google-java-format" },
+        -- lsp_format = "never" is the same guard as `format.enabled = false` on
+        -- the jdtls side, for the path where conform is called directly.
+        java = { "google-java-format", lsp_format = "never" },
       },
       formatters = {
-        ["google-java-format"] = {
-          prepend_args = { "--aosp" },
-        },
+        ["google-java-format"] = function(bufnr)
+          return { prepend_args = gjf_style(bufnr) }
+        end,
       },
     },
   },
