@@ -20,14 +20,26 @@ local read_only_sources = { "/src/edu/" }
 -- scoped. Written without the leading `-`; doclint_exclusion adds it.
 local read_only_packages = { "edu.monash.*" }
 
-local function read_only(uri)
-  local path = uri and vim.uri_to_fname(uri) or ""
+--- Whether `path` lives in a tree the project is not allowed to change.
+--- @param path string|nil
+--- @return boolean
+local function read_only(path)
   for _, fragment in ipairs(read_only_sources) do
-    if path:find(fragment, 1, true) then
+    if path and path:find(fragment, 1, true) then
       return true
     end
   end
   return false
+end
+
+--- read_only for an LSP document URI. jdt.ls also reports on `jdt://` URIs for
+--- decompiled class files, which uri_to_fname cannot parse -- those are library
+--- code, not project code, so a failure to convert is simply not a match.
+--- @param uri string|nil
+--- @return boolean
+local function read_only_uri(uri)
+  local ok, path = pcall(vim.uri_to_fname, uri or "")
+  return ok and read_only(path)
 end
 
 --- The single -Xdoclint/package: argument covering read_only_packages.
@@ -57,13 +69,13 @@ end
 local function read_only_filter()
   return {
     ["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
-      if result and read_only(result.uri) then
+      if result and read_only_uri(result.uri) then
         result.diagnostics = errors_only(result.diagnostics)
       end
       return vim.lsp.handlers["textDocument/publishDiagnostics"](err, result, ctx, config)
     end,
     ["textDocument/diagnostic"] = function(err, result, ctx, config)
-      if result and result.items and read_only(vim.tbl_get(ctx, "params", "textDocument", "uri")) then
+      if result and result.items and read_only_uri(vim.tbl_get(ctx, "params", "textDocument", "uri")) then
         result.items = errors_only(result.items)
       end
       return vim.lsp.handlers["textDocument/diagnostic"](err, result, ctx, config)
@@ -106,23 +118,104 @@ local function sources(root)
   return vim.fn.glob(vim.fs.joinpath(root, "src", "**", "*.java"), true, true)
 end
 
--- IntelliJ picks the main class from a run configuration; without one, find the
--- single class declaring a main method and reconstruct its fully-qualified name.
-local function main_class(root)
+--- The fully-qualified name of the class in `file`, if it declares a main.
+--- @param file string
+--- @return string|nil
+local function main_in(file)
+  local ok, lines = pcall(vim.fn.readfile, file)
+  if not ok then
+    return nil
+  end
+  local text = table.concat(lines, "\n")
+  if not text:find("static%s+void%s+main%s*%(") then
+    return nil
+  end
+  local package = text:match("^%s*package%s+([%w%.]+)%s*;") or text:match("\n%s*package%s+([%w%.]+)%s*;")
+  local name = vim.fn.fnamemodify(file, ":t:r")
+  return package and (package .. "." .. name) or name
+end
+
+--- Every class under src/ declaring a main, project code before engine demos.
+--- @param root string
+--- @return { fqn: string, read_only: boolean }[]
+local function main_classes(root)
+  local found = {}
   for _, file in ipairs(sources(root)) do
-    local text = table.concat(vim.fn.readfile(file), "\n")
-    if text:find("static%s+void%s+main%s*%(") then
-      local package = text:match("^%s*package%s+([%w%.]+)%s*;") or text:match("\n%s*package%s+([%w%.]+)%s*;")
-      local name = vim.fn.fnamemodify(file, ":t:r")
-      return package and (package .. "." .. name) or name
+    local fqn = main_in(file)
+    if fqn then
+      table.insert(found, { fqn = fqn, read_only = read_only(file) })
     end
   end
+  -- Project mains first, so the common choice is the one already under the
+  -- cursor when the picker opens.
+  table.sort(found, function(a, b)
+    if a.read_only ~= b.read_only then
+      return b.read_only
+    end
+    return a.fqn < b.fqn
+  end)
+  return found
+end
+
+-- Which class <leader>jr runs. Scanning for "the" main class cannot work here:
+-- the engine ships demo Applications under src/edu/ and a glob finds
+-- conwayslife's long before the project's own, so the run key silently launched
+-- a demo the project is not even allowed to edit.
+--
+-- IntelliJ resolves this from a run configuration -- the class you asked for,
+-- remembered until you ask for another. This is the same idea scoped to the
+-- session: the buffer you are in wins, otherwise whatever ran last, and the
+-- picker appears only when there is genuinely nothing better than a guess.
+local last_main = {}
+
+--- Resolve the class to run for `root` and pass it to `callback`, which may be
+--- invoked asynchronously. Not called at all if the choice is abandoned.
+--- @param root string
+--- @param callback fun(main: string)
+local function resolve_main(root, callback)
+  local function chosen(fqn)
+    last_main[root] = fqn
+    callback(fqn)
+  end
+
+  local current = main_in(vim.api.nvim_buf_get_name(0))
+  if current then
+    return chosen(current)
+  end
+
+  if last_main[root] then
+    return callback(last_main[root])
+  end
+
+  local found = main_classes(root)
+  if #found == 0 then
+    return vim.notify("No class with a main method found under src/", vim.log.levels.WARN)
+  end
+  if #found == 1 then
+    return chosen(found[1].fqn)
+  end
+
+  vim.ui.select(found, {
+    prompt = "Run which main class?",
+    format_item = function(item)
+      return item.read_only and (item.fqn .. "  (engine demo)") or item.fqn
+    end,
+  }, function(choice)
+    if choice then
+      chosen(choice.fqn)
+    end
+  end)
 end
 
 -- Build (and optionally run) in a terminal, so javac diagnostics are readable
 -- rather than swallowed. interactive=false keeps the window open on exit.
 local function javac_run(run)
   return function()
+    -- Save first: every step below reads from disk, so an unsaved buffer would
+    -- otherwise be compiled -- and searched for a main -- in its previous state,
+    -- and a never-saved file would not be found at all.
+    vim.cmd("silent! wall")
+
     local root = project_root()
     local files = sources(root)
     if #files == 0 then
@@ -151,18 +244,21 @@ local function javac_run(run)
     for _, file in ipairs(files) do
       table.insert(parts, vim.fn.shellescape(file))
     end
-    local cmd = table.concat(parts, " ")
+    local compile = table.concat(parts, " ")
 
-    if run then
-      local main = main_class(root)
-      if not main then
-        return vim.notify("No class with a main method found under src/", vim.log.levels.WARN)
-      end
-      cmd = cmd .. " && " .. vim.fn.shellescape(java) .. " -cp bin " .. vim.fn.shellescape(main)
+    local function launch(cmd)
+      Snacks.terminal.open(cmd, { cwd = root, interactive = false, win = { position = "bottom" } })
     end
 
-    vim.cmd("silent! wall")
-    Snacks.terminal.open(cmd, { cwd = root, interactive = false, win = { position = "bottom" } })
+    if not run then
+      return launch(compile)
+    end
+
+    -- resolve_main may prompt, so the terminal is opened from its callback
+    -- rather than after it returns.
+    resolve_main(root, function(main)
+      launch(compile .. " && " .. vim.fn.shellescape(java) .. " -cp bin " .. vim.fn.shellescape(main))
+    end)
   end
 end
 
