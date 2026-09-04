@@ -103,7 +103,39 @@ if command -v fnm >/dev/null 2>&1; then
   eval "$(fnm env --shell zsh)"
 fi
 
-export PATH="$PATH:$(go env GOBIN):$(go env GOPATH)/bin:$HOME/.local/bin"
+# PATH additions, appended once each.
+#
+# This was one line -- PATH="$PATH:$(go env GOBIN):$(go env GOPATH)/bin:..." --
+# and it had two problems. `go env GOBIN` is empty unless it has been set
+# explicitly (it is not set on a fresh machine), and an empty element in PATH
+# means *the current directory*: every directory you cd into got a vote on
+# what `ls` resolves to. And nothing here was guarded, so each nested
+# interactive shell -- a tmux pane, a subshell -- appended the whole lot
+# again; PATH here had four copies of ~/go/bin by mid-afternoon.
+#
+# Also guarded on `go` existing at all: .zshrc is shared with machines that
+# have no Go toolchain, where the old line printed "command not found: go"
+# twice on every prompt.
+_path_append() {
+  [ -n "$1" ] || return 0
+  case ":$PATH:" in
+    *":$1:"*) ;;
+    *) PATH="$PATH:$1" ;;
+  esac
+}
+
+if command -v go >/dev/null 2>&1; then
+  _gobin=$(go env GOBIN)
+  _gopath=$(go env GOPATH)
+  _path_append "$_gobin"
+  [ -n "$_gopath" ] && _path_append "$_gopath/bin"
+  unset _gobin _gopath
+fi
+
+_path_append "$HOME/.local/bin"
+
+unset -f _path_append
+export PATH
 
 # pnpm
 export PNPM_HOME="$HOME/.local/share/pnpm"
