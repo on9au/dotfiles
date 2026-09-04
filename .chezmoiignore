@@ -13,6 +13,13 @@ system
 # reason as `system` above: without this, chezmoi would create ~/docs/.
 docs
 
+# Bring-up scripts, run by hand from a clone of this repo. Same reason again:
+# every path here is relative to $HOME, so without this an apply would drop
+# ~/install/bootstrap.sh into the home directory it is supposed to be setting
+# up. install/ is also the one directory here that is never a dotfile -- it is
+# what you run *before* the dotfiles exist.
+install
+
 # Same again, and this one was actually happening: every apply dropped a full
 # copy of this repo's README into $HOME. Prose, not a dotfile.
 README.md

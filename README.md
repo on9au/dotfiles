@@ -13,17 +13,68 @@ OS, with WSL detected on the kernel release string rather than a hostname.
 | Arch desktop + laptop | Hyprland | the main setup — [below](#hyprland-specific) |
 | MacBook Pro | AeroSpace | [macOS specific](#macos-specific) |
 | Windows work laptop (`G3JC7G4`) | GlazeWM | `.glzr`, undocumented so far |
-| WSL | none | shell half only: zsh, tmux, nvim |
+| WSL | none | shell half only: zsh, tmux, nvim — [WSL specific](#wsl-specific) |
 
 **Everything lives on the `hyprland` branch, not `main`.** `main` is far
 behind and has no macOS or Windows support at all, so clone with
 `chezmoi init --branch hyprland …`.
 
+## Install
+
+On a machine that has nothing yet — not even chezmoi:
+
+```bash
+git clone -b hyprland https://github.com/on9au/dotfiles.git ~/.local/share/chezmoi
+sh ~/.local/share/chezmoi/install/bootstrap.sh
+```
+
+Run it from a real terminal. The package step calls `sudo`, and `sudo` needs a
+TTY to prompt on — from anything that is not one it fails with *"a terminal is
+required to read the password"* before installing anything.
+
+Cloning to `~/.local/share/chezmoi` is deliberate: that is chezmoi's default
+source directory, so every later bare `chezmoi apply` finds this tree without
+being told where it is. If chezmoi *is* already installed, `chezmoi init
+--branch hyprland …` does the same clone.
+
+`bootstrap.sh` works out which of the three targets it is on and runs three
+steps, in this order:
+
+| # | step | why it is there |
+| --- | --- | --- |
+| 1 | `arch.sh` or `macos.sh` | packages — including chezmoi itself, which is why it cannot come second |
+| 2 | `chezmoi apply` | writes the configs into `$HOME` |
+| 3 | `common.sh` | the `$HOME` half: antidote, tpm, node, nvim plugins — last, because it reads the files step 2 wrote |
+
+Each is also runnable on its own when only one needs redoing, and all of them
+are safe to re-run: package installs are `--needed`, and everything in
+`common.sh` checks for what it is about to create first.
+
+| script | covers |
+| --- | --- |
+| [`install/bootstrap.sh`](install/bootstrap.sh) | entry point — detects the target, runs the other three |
+| [`install/arch.sh`](install/arch.sh) | pacman + paru. The shell half on every Arch box; the Hyprland half only on bare metal |
+| [`install/macos.sh`](install/macos.sh) | brew formulae, casks and taps — the "Bring-up" list below, made executable |
+| [`install/common.sh`](install/common.sh) | antidote, tpm + plugins, node via fnm, mermaid-cli, nvim plugins, login shell |
+| [`install/lib.sh`](install/lib.sh) | sourced by the rest: logging, and the target detection they share |
+
+**Target detection is duplicated, so keep it in sync.** `lib.sh`'s
+`dotfiles_target` and `.chezmoiignore` both decide WSL-vs-bare-metal by
+grepping the kernel release string for `microsoft` — a hostname would not
+survive a reinstall. If the two ever disagree, the packages and the configs
+land on different sides of the same fence.
+
+**`install/` deliberately does not cover `system/`.** Those scripts write to
+`/etc`, want root, and each has consequences worth reading about first — a
+broken `/etc/greetd` locks you out of the machine. `arch.sh` prints the list
+of them when it finishes; each has a section below.
+
 ## Machine notes
 
 `docs/` holds write-ups of hardware and OS problems that took real work to pin
 down — prose rather than config, so it is in `.chezmoiignore` alongside
-`system/`.
+`system/` and `install/`. All three would otherwise be written into `$HOME`,
+since every path in that file is relative to it.
 
 | doc | about |
 | --- | --- |
@@ -1034,32 +1085,17 @@ rules. A plain `chezmoi init` gets a nearly empty macOS config:
 chezmoi init --branch hyprland https://github.com/on9au/dotfiles.git
 ```
 
-Then [Homebrew](https://brew.sh), and:
+Then [Homebrew](https://brew.sh), and
+[`install/macos.sh`](install/macos.sh) — or just
+[`install/bootstrap.sh`](install/bootstrap.sh), which calls it. The package
+list lives in that script rather than being repeated here, so there is one
+copy of it to keep current; the parts worth explaining are below.
 
-```bash
-# sketchybar + borders, and aerospace, live in third-party taps
-brew tap FelixKratz/formulae
-brew tap nikitabobko/tap
-
-# Homebrew 6 refuses to load a third-party formula until its tap is trusted.
-# Without this the install aborts with "Refusing to load formula … from
-# untrusted tap" and nothing in the whole command gets installed.
-brew trust felixkratz/formulae
-brew trust nikitabobko/tap
-
-brew install \
-  chezmoi antidote starship tmux gh go fnm \
-  neovim tree-sitter-cli ripgrep fd fzf lazygit \
-  openssh libfido2 \
-  imagemagick ghostscript tectonic \
-  sketchybar borders
-
-brew install --cask \
-  ghostty aerospace karabiner-elements font-fira-code-nerd-font raycast orion
-
-brew services start sketchybar
-brew services start borders
-```
+**sketchybar, borders and aerospace are in third-party taps**, and Homebrew 6
+refuses to load a third-party formula until its tap is trusted. Without the
+`brew trust` calls the install aborts with "Refusing to load formula … from
+untrusted tap" and nothing in the whole command gets installed — not the taps'
+formulae, not the ordinary ones alongside them.
 
 Raycast needs three things set by hand after install, none of them scriptable
 (its settings live in a private store, not a plist worth writing):
@@ -1090,19 +1126,9 @@ without it.
 `imagemagick`, `ghostscript` and `tectonic` are Snacks.image's rendering
 chain (raster, PDF, LaTeX). `lazygit` backs `Snacks.lazygit`.
 
-Then the pieces brew does not cover:
-
-```bash
-# node — nvim's LSPs, and mmdc below
-fnm install --lts
-
-# mermaid-cli: plugins/diagrams.lua shells out to `mmdc`
-npm i -g @mermaid-js/mermaid-cli
-
-# tmux plugins
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-~/.tmux/plugins/tpm/bin/install_plugins
-```
+The pieces brew does not cover — node via fnm, mermaid-cli, tpm and its
+plugins, the nvim plugin restore — are
+[`install/common.sh`](install/common.sh), shared with Linux.
 
 `npm` will warn that it blocked puppeteer's postinstall script, which sounds
 like it broke mmdc's headless browser. It generally has not — puppeteer falls
