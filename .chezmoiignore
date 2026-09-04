@@ -24,6 +24,14 @@ install
 # copy of this repo's README into $HOME. Prose, not a dotfile.
 README.md
 
+# Instructions for AI agents working on this repo -- prose about the repo, so
+# the same rule as README.md. CLAUDE.md is a symlink to AGENTS.md (one file,
+# two names, because different tools look for different ones); an unignored
+# symlink in the source tree is a second thing chezmoi would have opinions
+# about, so both names are named here.
+AGENTS.md
+CLAUDE.md
+
 # ---------------------------------------------------------------------------
 # Per-OS targets.
 #
