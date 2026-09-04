@@ -1360,3 +1360,73 @@ AeroSpace resizes by dimension, not by direction.
 `norg` is a permanent `:checkhealth` warning, not a local misconfiguration:
 nvim-treesitter has no parser registered under that name, so Snacks' hardcoded
 check list can only ever warn.
+
+## WSL specific
+
+Arch under WSL2 on the same work laptop as the GlazeWM half — `G3JC7G4` is the
+hostname on both sides. Only the shell half lands: zsh, tmux, nvim, and the
+tools they shell out to. No compositor, because the desktop over here *is*
+Windows.
+
+### What .chezmoiignore drops
+
+WSL is detected on the kernel release string containing `microsoft`, not on a
+hostname, so it holds for any distro under any WSL install — and it has to,
+since the hostname is shared with the Windows target.
+
+The list used to stop at the Wayland compositor half — Hyprland, waybar,
+fuzzel, swaync, uwsm, the portals — which left a WSL apply still writing a
+kitty config, a Qt theme, KDE's `kcminputrc`, MIME associations pointing at
+applications that are not installed, and four `.local/bin` scripts that are
+wrappers around `hyprctl`, `fuzzel` and `wl-copy`. None of it was read by
+anything; all of it is now in the WSL block, matching what the `darwin` block
+already dropped.
+
+`reload-hyprland.sh` is in there too. It exits immediately when
+`HYPRLAND_INSTANCE_SIGNATURE` is unset, so it was only ever a no-op — but it
+is a `run_after_` script, which means chezmoi ran it on *every* apply to
+discover that.
+
+### node, and the Windows PATH
+
+WSL appends the whole Windows `PATH` to the Linux one. That is usually
+harmless — Linux binaries come first — but it is not harmless for anything
+missing on the Linux side: with no node installed here, `npm` and `pnpm`
+resolved to
+
+```
+/mnt/c/Users/…/AppData/Local/fnm_multishells/…/npm
+```
+
+which is Windows node running under a Linux shell. It cannot build native
+modules for this filesystem, and it is what Mason would have used to install
+nvim's LSP servers.
+
+The fix is just to have a Linux node: `install/common.sh` runs `fnm install
+--lts` **and** `fnm default lts-latest`. The default matters — without it a
+fresh shell activates no version, `node` is missing again, and the `/mnt/c`
+copy wins a second time.
+
+### Skipped on purpose
+
+`imagemagick`, `ghostscript`, `tectonic` and `mermaid-cli` are not installed
+here. They exist to render Snacks.image and `plugins/diagrams.lua` output
+inline, which needs a terminal that speaks the kitty graphics protocol — and
+the terminal for this VM is on the Windows side, which does not. image.nvim
+draws nothing without that protocol, so the rendering chain behind it has
+nothing to hand its output to; `plugins/diagrams.lua` has no `executable()`
+guard, so if a diagram buffer does start complaining about a missing `mmdc`,
+install that group by hand rather than expecting it to degrade quietly.
+
+`wl-clipboard` *is* installed, despite the name. WSLg puts a Wayland socket in
+every WSL session, so `wl-copy`/`wl-paste` work, and the clipboard stops
+depending on a `win32yank.exe` that only exists because Neovim happens to be
+installed on the Windows side as well.
+
+### Not applicable
+
+The `system/` scripts are all bare-metal concerns and none of them apply:
+greetd (no login manager — WSL starts the shell directly), the lid switch, and
+gnome-keyring, whose whole design here is an unlock driven by PAM at a
+graphical login that never happens. Git credentials over here are whatever
+`/etc` and `~/.gitconfig` say, not libsecret.

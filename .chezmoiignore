@@ -78,6 +78,24 @@ reload-hyprland.sh
 .config/waybar
 .config/xdg-desktop-portal
 .local/share/dbus-1
+reload-hyprland.sh
+
+# The rest of the desktop, which this list used to miss -- it excluded the
+# Wayland compositor half and stopped there, so a WSL apply still wrote a
+# terminal config, a Qt theme, KDE's input settings, MIME associations for
+# applications that are not installed, and four .local/bin scripts that are
+# wrappers around hyprctl, fuzzel and wl-copy. Same set the darwin block
+# below drops, for the same reason: nothing over here reads any of it.
+#
+# The desktop for this VM is Windows. kitty, mimeapps and qt6ct belong to
+# whatever is drawing pixels, and that is not this side.
+.config/kcminputrc
+.config/kitty
+.config/mimeapps.list
+.config/qt6ct
+.config/spotify-launcher.conf
+.config/winapps
+.local/bin
 {{   end }}
 {{ end }}
 
