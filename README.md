@@ -55,7 +55,7 @@ are safe to re-run: package installs are `--needed`, and everything in
 | [`install/bootstrap.sh`](install/bootstrap.sh) | entry point — detects the target, runs the other three |
 | [`install/arch.sh`](install/arch.sh) | pacman + paru. The shell half on every Arch box; the Hyprland half only on bare metal |
 | [`install/macos.sh`](install/macos.sh) | brew formulae, casks and taps — the "Bring-up" list below, made executable |
-| [`install/common.sh`](install/common.sh) | antidote, tpm + plugins, node via fnm, mermaid-cli, nvim plugins, login shell |
+| [`install/common.sh`](install/common.sh) | antidote, tpm + plugins, node via fnm, mermaid-cli, marie-lsp, nvim plugins, login shell |
 | [`install/lib.sh`](install/lib.sh) | sourced by the rest: logging, and the target detection they share |
 
 **Target detection is duplicated, so keep it in sync.** `lib.sh`'s
@@ -79,6 +79,42 @@ since every path in that file is relative to it.
 | doc | about |
 | --- | --- |
 | [`LAPTOP-ON9AU-nvme-vmd-stalls.md`](docs/LAPTOP-ON9AU-nvme-vmd-stalls.md) | the ~30s whole-machine freezes on the laptop: an Intel VMD erratum losing NVMe interrupts. No kernel fix exists or is planned, so **upgrading will not clear it** |
+
+## Neovim
+
+LazyVim, with the plugin specs in `.config/nvim/lua/plugins/`. It is part of
+the shell half of this repo, so it lands on all four targets — and `common.sh`
+restores its plugins at the pinned commits, never `Lazy! sync`; see the
+lockfile note in [`AGENTS.md`](AGENTS.md).
+
+### marie-lsp
+
+One server in there is not a package anywhere: `marie-lsp`, the language
+server for MARIE assembly (`.mas`), built out of a local Rust workspace.
+
+```bash
+git clone https://github.com/on9au/marie-rs ~/Projects/marie-rs
+cargo install --path ~/Projects/marie-rs/crates/bin/marie-lsp
+```
+
+`common.sh` runs that second line when the checkout is there and `cargo` is
+on PATH, so on a fresh machine it does nothing at all — the checkout does not
+exist yet, and neither `arch.sh` nor `macos.sh` installs rustup. Clone
+`marie-rs` first and re-run `sh install/common.sh` to pick it up.
+
+Nothing is broken while the binary is missing. `plugins/marie.lua` prefers
+`marie-lsp` on PATH (`~/.cargo/bin`, exported in `.zshenv`) and falls back to
+`target/release/marie-lsp` in the checkout — the build you want while working
+on the server itself — and where neither exists it resolves to an empty spec,
+so a `.mas` file on the MacBook opens as a plain `marie` buffer rather than a
+spawn error.
+
+The upstream repo ships its own [nvim
+drop-in](https://github.com/on9au/marie-rs/tree/main/editors/nvim) for a bare
+Neovim, which starts the server itself and then hand-rolls LspAttach keymaps
+and inlay hints. Both of those are things LazyVim already does for any client
+that attaches, so the copy here keeps only the filetype and the server,
+declared through `nvim-lspconfig`'s `opts.servers` like everything else.
 
 ## Hyprland specific
 

@@ -124,6 +124,39 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# marie-lsp
+#
+# The language server behind nvim's plugins/marie.lua, for MARIE assembly
+# (.mas). It is the one server in that config that is not a package anywhere:
+# marie-rs is a local Rust workspace, so the binary exists only after cargo has
+# built it out of a checkout this repo neither owns nor clones.
+#
+# Which means this is a no-op on a genuinely fresh machine -- no checkout yet,
+# and rustup is not in arch.sh or macos.sh either. It is here for the re-run:
+# clone marie-rs, `sh install/common.sh`, and it gets picked up. Nothing is
+# broken in the meantime -- plugins/marie.lua registers the .mas filetype and
+# no server at all when the binary is missing, rather than failing to spawn it.
+# ---------------------------------------------------------------------------
+
+MARIE="$HOME/Projects/marie-rs"
+
+# cargo install writes here, and .zshenv is what normally puts it on PATH --
+# which this script does not run under, same as the fnm case above.
+[ -d "$HOME/.cargo/bin" ] && PATH="$HOME/.cargo/bin:$PATH"
+
+if have marie-lsp; then
+    step "marie-lsp: already installed"
+elif [ ! -d "$MARIE/crates/bin/marie-lsp" ]; then
+    step "marie-lsp: no checkout at $MARIE, skipping"
+elif ! have cargo; then
+    warn "cargo not found, skipping marie-lsp -- install rustup, then re-run this script"
+else
+    step "installing marie-lsp (a cargo release build, so not fast)"
+    # --path rather than a crate name: marie-rs is not published anywhere.
+    cargo install --path "$MARIE/crates/bin/marie-lsp" || warn "marie-lsp install failed"
+fi
+
+# ---------------------------------------------------------------------------
 # neovim
 #
 # LazyVim bootstraps itself on first launch anyway; doing it here means the
