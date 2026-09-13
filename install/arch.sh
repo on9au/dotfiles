@@ -125,6 +125,21 @@ DESKTOP="$DESKTOP imagemagick ghostscript tectonic"
 # The YubiKey FIDO2 SSH keys -- see "SSH agent and YubiKeys" in the README.
 DESKTOP="$DESKTOP libfido2"
 
+# The graphical askpass helper. It was referenced by uwsm/env and
+# environment.d for a long time without ever being in this list, which is a
+# quiet way to fail: neither file hardcodes a path any more, but if *nothing*
+# from that preference list is installed there is no graphical password prompt
+# at all -- sudo from a launcher and every FIDO2 PIN request from a systemd
+# unit fail with no dialog to answer. ksshaskpass is the first choice because
+# it is Qt6 and picks up the qt6ct theming.
+DESKTOP="$DESKTOP ksshaskpass"
+
+# Input method. Nothing in this repo starts it -- the package's own D-Bus
+# activation and XDG autostart entry do, which is why there is no unit for it
+# in hypr/autostart.lua. See "Input method (fcitx5)" in the README.
+DESKTOP="$DESKTOP fcitx5 fcitx5-configtool fcitx5-gtk fcitx5-qt fcitx5-mozc
+         fcitx5-chinese-addons"
+
 # shellcheck disable=SC2086
 sudo pacman -S --needed --noconfirm $DESKTOP
 

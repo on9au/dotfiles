@@ -276,7 +276,24 @@
   },
   "tray": {
     "icon-size": 18,
-    "spacing": 10
+    "spacing": 10,
+    // fcitx5's language icon. custom/fcitx5 sits immediately right of the
+    // tray and says the same thing in two characters, so the tray item is
+    // pure duplication.
+    //
+    // This used to be switched off at the source instead, by forcing
+    // --disable=notificationitem into two hand-written files -- a D-Bus
+    // service override and an XDG autostart entry -- both of which hardcoded
+    // Exec=/usr/bin/fcitx5. That is an Arch path: anywhere else it names a
+    // binary that does not exist, and since the D-Bus one *overrides* the
+    // packaged service, it would not have cost the icon, it would have cost
+    // the input method. Both files are gone; this replaces them.
+    //
+    // ignore-list hides an item when any string here appears as a substring
+    // of its bus name, category, icon name, id or title. Both spellings,
+    // because the match is case-sensitive and fcitx5 uses "Fcitx" in the id
+    // and title but "fcitx" in the icon name.
+    "ignore-list": ["Fcitx", "fcitx"]
   },
   "custom/fcitx5": {
     "exec": "$HOME/.config/waybar/scripts/fcitx5-layout.sh",

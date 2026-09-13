@@ -21,7 +21,7 @@ launch.app_on(apps.browser, 2)
 -- workspaces 1-5 fall back to the panel on their own when the ultrawide is not
 -- plugged in -- whereas anything parked on 6-10 would vanish under the lid in
 -- clamshell.
-launch.app_on("spotify-launcher", 5)
+launch.app_on(apps.music, 5)
 
 -- Not started here, and deliberately:
 --

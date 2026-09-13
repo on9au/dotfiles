@@ -15,6 +15,12 @@
 # (editors, browsers, anything uwsm or XDG-autostart launches). Interactive
 # shells get the same value from .zshrc, which is the half that also covers
 # SSHing *into* this machine, where nothing reads environment.d.
+#
+# NOT the same socket name everywhere: NixOS's programs.ssh.startAgent runs the
+# agent on %t/ssh-agent, with no .socket suffix, and exports SSH_AUTH_SOCK
+# itself. On that machine this line is both wrong and redundant -- drop this
+# file and let the module own it. .zshrc already accepts either name, so shells
+# are covered regardless; this file is only the user manager's half.
 SSH_AUTH_SOCK=${XDG_RUNTIME_DIR}/ssh-agent.socket
 
 # ssh-agent is a systemd unit, so it has no tty and can only ask for a FIDO2
@@ -26,4 +32,25 @@ SSH_AUTH_SOCK=${XDG_RUNTIME_DIR}/ssh-agent.socket
 # This has to be here rather than only in uwsm/env: uwsm sets the graphical
 # session's environment, but the user manager starts ssh-agent from its own,
 # which is what environment.d feeds.
-SSH_ASKPASS=/usr/bin/ksshaskpass
+#
+# The path used to be written out as /usr/bin/ksshaskpass, which is an Arch
+# path to an Arch package -- anywhere else it names a helper that is not there,
+# and the prompt it exists to raise silently never happens. But environment.d
+# is KEY=VALUE, not shell: it cannot look anything up at runtime the way
+# uwsm/env now does. So the lookup happens at `chezmoi apply` time instead,
+# over the same preference list, and the absolute path of whatever this machine
+# actually has is baked in. That is the whole reason this file is a template.
+#
+# Consequence worth knowing: install the askpass helper *before* applying, and
+# re-apply after changing which one is installed.
+{{ $askpass := "" -}}
+{{ range (list "ksshaskpass" "lxqt-openssh-askpass" "ssh-askpass-fullscreen" "ssh-askpass") -}}
+{{   if and (eq $askpass "") (lookPath .) }}{{ $askpass = lookPath . }}{{ end -}}
+{{ end -}}
+{{ if $askpass }}
+SSH_ASKPASS={{ $askpass }}
+{{- else }}
+# Nothing from that list was on PATH when this was applied, so SSH_ASKPASS is
+# left unset rather than pointed at a helper that does not exist. Install one
+# (ksshaskpass, lxqt-openssh-askpass, ...) and re-run `chezmoi apply`.
+{{- end }}

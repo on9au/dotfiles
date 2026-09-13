@@ -24,14 +24,19 @@ have() { command -v "$1" >/dev/null 2>&1; }
 # ---------------------------------------------------------------------------
 # Which machine is this
 #
-# The same three-way split .chezmoiignore makes, by the same test: WSL is
-# detected on the kernel release string rather than a hostname, so it holds
-# for any distro under any WSL install. Keep the two in sync -- if this says
-# `wsl` and .chezmoiignore's `contains "microsoft"` disagrees, the install
-# and the config land on different sides of the same fence.
+# The same split .chezmoiignore makes, by the same test: WSL is detected on the
+# kernel release string rather than a hostname, so it holds for any distro
+# under any WSL install. Keep the two in sync -- if this says `wsl` and
+# .chezmoiignore's `contains "microsoft"` disagrees, the install and the config
+# land on different sides of the same fence.
 #
-# Windows itself is not a target here: the GlazeWM half is applied by a
-# chezmoi running under Windows, which never executes these scripts.
+# `nixos` is a fourth answer that .chezmoiignore deliberately does *not* make:
+# a NixOS box is a Linux desktop and wants exactly the same configs as the Arch
+# one, so nothing there needs to know. Only the package step differs, and that
+# is this file's business -- see bootstrap.sh.
+#
+# WSL is tested first on purpose. NixOS under WSL is still WSL: it wants the
+# shell half and no compositor, which is the more important of the two facts.
 # ---------------------------------------------------------------------------
 
 dotfiles_target() {
@@ -40,6 +45,8 @@ dotfiles_target() {
         Linux)
             if grep -qi microsoft /proc/sys/kernel/osrelease 2>/dev/null; then
                 echo wsl
+            elif [ -e /etc/NIXOS ]; then
+                echo nixos
             else
                 echo linux
             fi

@@ -199,7 +199,13 @@ LOGIN_SHELL=$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f7)
 case "$LOGIN_SHELL" in
     */zsh) ;;
     *)
-        if [ -n "$ZSH_BIN" ]; then
+        if [ "$TARGET" = nixos ]; then
+            # The passwd entry is generated from the nix config, so chsh either
+            # refuses outright or is reverted by the next nixos-rebuild. Saying
+            # so beats "chsh failed" for a reason that is not a failure.
+            warn "login shell is $LOGIN_SHELL -- on NixOS set users.users.$(id -un).shell = pkgs.zsh"
+            warn "(and programs.zsh.enable = true) rather than running chsh"
+        elif [ -n "$ZSH_BIN" ]; then
             step "setting zsh as the login shell"
             # Needs the account password, and fails if zsh is not in
             # /etc/shells (a Homebrew zsh on macOS, typically). Not worth

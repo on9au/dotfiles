@@ -39,6 +39,15 @@ log "target: $TARGET"
 
 case "$TARGET" in
     darwin) sh "$HERE/macos.sh" ;;
+    nixos)
+        # Nothing to do, and nothing that *could* be done: packages here come
+        # from the system flake / configuration.nix, not from a script that
+        # shells out to a package manager. Steps 2 and 3 are unchanged -- the
+        # configs and the $HOME-half fetches are the same on every OS.
+        step "NixOS: skipping the package step"
+        log "packages are declarative here; install/ has nothing to add."
+        log "See 'NixOS migration' in the README for what is still Arch-shaped."
+        ;;
     linux|wsl)
         [ -f /etc/arch-release ] || die "only Arch is scripted here; install the equivalents of install/arch.sh by hand, then run install/common.sh"
         sh "$HERE/arch.sh"

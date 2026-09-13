@@ -55,10 +55,22 @@ zvm_after_init() {
 # graphical session; this line covers shells, including SSH logins into this
 # machine, where environment.d is never read.
 #
-# Guarded: WSL shares this file and has no ssh-agent.socket, and pointing
-# SSH_AUTH_SOCK at a socket that does not exist is worse than leaving it alone.
-if [ -n "${XDG_RUNTIME_DIR:-}" ] && [ -S "$XDG_RUNTIME_DIR/ssh-agent.socket" ]; then
-  export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+# Two names, because the agent is not packaged the same everywhere: Arch's
+# ssh-agent.socket listens on $XDG_RUNTIME_DIR/ssh-agent.socket, while NixOS's
+# programs.ssh.startAgent runs the agent on $XDG_RUNTIME_DIR/ssh-agent. The
+# one that is actually there wins.
+#
+# Guarded on the socket existing at all: WSL shares this file and runs no
+# agent, and pointing SSH_AUTH_SOCK at a socket with nothing behind it is
+# worse than leaving it unset.
+if [ -n "${XDG_RUNTIME_DIR:-}" ]; then
+  for _sock in "$XDG_RUNTIME_DIR/ssh-agent.socket" "$XDG_RUNTIME_DIR/ssh-agent"; do
+    if [ -S "$_sock" ]; then
+      export SSH_AUTH_SOCK="$_sock"
+      break
+    fi
+  done
+  unset _sock
 fi
 
 # kitty ssh

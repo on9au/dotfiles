@@ -15,7 +15,20 @@ local launch = require("launch")
 
 hl.on("hyprland.start", function()
     -- Authentication dialogs (anything asking for a password / sudo prompt).
-    launch.app("/usr/lib/hyprpolkitagent/hyprpolkitagent")
+    --
+    -- Started as a unit, not by path. The binary lives in libexec, and every
+    -- distribution puts libexec somewhere different -- this used to name
+    -- /usr/lib/hyprpolkitagent/hyprpolkitagent, which is an Arch path and
+    -- exists nowhere else, so on any other machine the agent silently never
+    -- came up and every polkit prompt in the session went unanswered. The
+    -- unit name is the same everywhere; upstream's own instruction is
+    -- `systemctl --user start hyprpolkitagent` from the compositor autostart.
+    --
+    -- Safe where something else already starts it: under home-manager's
+    -- services.hyprpolkitagent the unit is WantedBy the session target and is
+    -- already running by the time this fires, and starting a running unit is
+    -- a no-op rather than a second agent.
+    launch.unit("hyprpolkitagent")
 
     -- Status bar and notification daemon.
     launch.app("waybar")

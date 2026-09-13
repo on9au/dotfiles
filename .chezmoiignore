@@ -35,49 +35,25 @@ CLAUDE.md
 # ---------------------------------------------------------------------------
 # Per-OS targets.
 #
-# This repo is a Linux/Hyprland setup that now also lands on a Windows work
-# laptop (G3JC7G4, GlazeWM instead of Hyprland). Without these guards
-# `chezmoi apply` there writes zsh, tmux and twenty hypr/*.lua files into a
-# profile where nothing reads them -- and applying on Linux would create a
-# stray ~/.glzr for a window manager that does not exist.
+# This repo is a Linux/Hyprland setup that also lands on a MacBook and inside
+# WSL. Without these guards an apply writes twenty hypr/*.lua files, a waybar
+# config and a set of portal settings onto machines where nothing reads any of
+# it.
 #
-# WSL is the third case: it wants the shell half (zsh, tmux, nvim) and none of
-# the compositor half, since the desktop is Windows. Detected on the kernel
-# release string rather than a hostname, so it holds for any distro.
+# WSL wants the shell half (zsh, tmux, nvim) and none of the compositor half,
+# since the desktop over there is Windows. Detected on the kernel release
+# string rather than a hostname, so it holds for any distro -- including a
+# NixOS under WSL, which should get the shell half like any other.
+#
+# There was a fourth target here: a Windows work laptop running GlazeWM out of
+# ~/.glzr, with a `windows` block excluding the Linux half and a matching
+# `ne "windows"` block excluding .glzr from everything else. Both are gone
+# along with the configs -- that machine is not in use. `git log -- dot_glzr`
+# has them if it ever comes back.
 # ---------------------------------------------------------------------------
-
-{{ if eq .chezmoi.os "windows" }}
-.config/autostart
-.config/environment.d
-.config/fuzzel
-.config/hypr
-.config/kcminputrc
-.config/kitty
-.config/mimeapps.list
-.config/qt6ct
-.config/spotify-launcher.conf
-.config/swaync
-.config/uwsm
-.config/waybar
-.config/winapps
-.config/xdg-desktop-portal
-.local/bin
-.local/share/dbus-1
-.tmux
-.tmux.conf
-.zsh_plugins.txt
-.zshenv
-.zshrc
-reload-hyprland.sh
-{{ end }}
-
-{{ if ne .chezmoi.os "windows" }}
-.glzr
-{{ end }}
 
 {{ if eq .chezmoi.os "linux" }}
 {{   if contains "microsoft" (lower .chezmoi.kernel.osrelease) }}
-.config/autostart
 .config/environment.d
 .config/fuzzel
 .config/hypr
@@ -85,7 +61,6 @@ reload-hyprland.sh
 .config/uwsm
 .config/waybar
 .config/xdg-desktop-portal
-.local/share/dbus-1
 reload-hyprland.sh
 
 # The rest of the desktop, which this list used to miss -- it excluded the
@@ -116,7 +91,6 @@ reload-hyprland.sh
 # for background-blur, which kitty does not support on macOS. Linux/Hyprland
 # keeps kitty -- see dot_config/ghostty/config and dot_config/kitty/kitty.conf.
 {{ if eq .chezmoi.os "darwin" }}
-.config/autostart
 .config/environment.d
 .config/fuzzel
 .config/hypr
@@ -131,7 +105,6 @@ reload-hyprland.sh
 .config/winapps
 .config/xdg-desktop-portal
 .local/bin
-.local/share/dbus-1
 {{ end }}
 
 # Ghostty, AeroSpace, SketchyBar and JankyBorders are macOS-only here -- the
