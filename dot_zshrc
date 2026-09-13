@@ -37,7 +37,19 @@ setopt HIST_REDUCE_BLANKS
 setopt EXTENDED_HISTORY
 
 # Starship prompt
-eval "$(starship init zsh)"
+#
+# Guarded, like `fnm` and `go` below and for the same reason this file already
+# learned once: unguarded, a missing binary prints "command not found" on every
+# new interactive shell -- every tmux pane, every subshell -- and you end up on
+# the default prompt regardless, so the noise buys nothing.
+#
+# It matters more since NixOS joined the targets. install/ deliberately
+# installs no packages there (they come from the system flake), so a freshly
+# applied NixOS box has this whole file and none of the tools it drives until
+# they are declared.
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
+fi
 
 # zsh-vi-mode hijacks keymaps on init, clobbering fzf-tab and
 # history-substring-search bindings. Re-apply them after vi-mode finishes.
