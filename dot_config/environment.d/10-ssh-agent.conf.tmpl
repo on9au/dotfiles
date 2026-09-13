@@ -17,10 +17,25 @@
 # SSHing *into* this machine, where nothing reads environment.d.
 #
 # NOT the same socket name everywhere: NixOS's programs.ssh.startAgent runs the
-# agent on %t/ssh-agent, with no .socket suffix, and exports SSH_AUTH_SOCK
-# itself. On that machine this line is both wrong and redundant -- drop this
-# file and let the module own it. .zshrc already accepts either name, so shells
-# are covered regardless; this file is only the user manager's half.
+# agent with `-a %t/ssh-agent`, no .socket suffix, so the value below has to
+# become ${XDG_RUNTIME_DIR}/ssh-agent there.
+#
+# Keep the file, though. The module does export SSH_AUTH_SOCK, but it does it
+# through environment.extraInit -- which is /etc/profile, so it reaches shells
+# and nothing else -- and only when the variable is not already set:
+#
+#   if [ -z "$SSH_AUTH_SOCK" -a -n "$XDG_RUNTIME_DIR" ]; then
+#       export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent"
+#   fi
+#
+# It never reaches the systemd user manager, which is precisely the half this
+# file exists to cover. So on NixOS this is not redundant -- it is the only
+# thing setting the variable for graphical apps, and deleting it would break
+# them while shells carried on working, which is the confusing direction.
+#
+# (An earlier version of this comment said to delete the file on NixOS. That
+# was wrong: it read "the module exports it" and stopped before checking which
+# environment the module exports it *into*.)
 SSH_AUTH_SOCK=${XDG_RUNTIME_DIR}/ssh-agent.socket
 
 # ssh-agent is a systemd unit, so it has no tty and can only ask for a FIDO2
