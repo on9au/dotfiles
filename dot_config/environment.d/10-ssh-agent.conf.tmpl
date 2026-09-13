@@ -16,9 +16,9 @@
 # shells get the same value from .zshrc, which is the half that also covers
 # SSHing *into* this machine, where nothing reads environment.d.
 #
-# NOT the same socket name everywhere: NixOS's programs.ssh.startAgent runs the
-# agent with `-a %t/ssh-agent`, no .socket suffix, so the value below has to
-# become ${XDG_RUNTIME_DIR}/ssh-agent there.
+# NOT the same socket name everywhere, so it is chosen at apply time: Arch's
+# ssh-agent.socket listens on %t/ssh-agent.socket, while NixOS's
+# programs.ssh.startAgent runs the agent with `-a %t/ssh-agent`.
 #
 # Keep the file, though. The module does export SSH_AUTH_SOCK, but it does it
 # through environment.extraInit -- which is /etc/profile, so it reaches shells
@@ -36,7 +36,21 @@
 # (An earlier version of this comment said to delete the file on NixOS. That
 # was wrong: it read "the module exports it" and stopped before checking which
 # environment the module exports it *into*.)
+#
+# `get .chezmoi.osRelease "id"` rather than the dotted .chezmoi.osRelease.id,
+# because on a machine with no /etc/os-release -- macOS -- osRelease is an
+# empty map and the dotted form is a hard template error:
+#
+#   executing "arg1" at <.chezmoi.osRelease.id>: map has no entry for key "id"
+#
+# `get` returns "" there instead. This file is ignored on darwin, but a
+# template that cannot be evaluated breaks the apply before anything gets as
+# far as deciding to ignore it.
+{{ if eq (get .chezmoi.osRelease "id") "nixos" -}}
+SSH_AUTH_SOCK=${XDG_RUNTIME_DIR}/ssh-agent
+{{- else -}}
 SSH_AUTH_SOCK=${XDG_RUNTIME_DIR}/ssh-agent.socket
+{{- end }}
 
 # ssh-agent is a systemd unit, so it has no tty and can only ask for a FIDO2
 # PIN through an askpass helper. Unset, it tries /usr/lib/ssh/ssh-askpass --

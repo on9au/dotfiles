@@ -107,6 +107,12 @@ things up) and at apply time in `environment.d` (`KEY=VALUE`, so it cannot) —
 which is why only one of the two is a template. Install the helper *before*
 applying, and re-apply if you change which one is installed.
 
+That same file picks the agent socket name from `.chezmoi.osRelease`:
+`%t/ssh-agent` on NixOS, `%t/ssh-agent.socket` everywhere else. **Keep the file
+on NixOS** — `programs.ssh.startAgent` does export `SSH_AUTH_SOCK`, but out of
+`environment.extraInit`, which is `/etc/profile` and so reaches shells only,
+never the systemd user manager this file exists to feed.
+
 `ksshaskpass` was also never in `install/arch.sh` despite two config files
 naming it. It is now, along with the fcitx5 packages.
 
@@ -137,7 +143,6 @@ under WSL is still WSL and still wants only the shell half.
 | `install/arch.sh` | pacman + paru. Worth translating from rather than deleting: the package list is still the readable inventory of what this desktop needs |
 | `awww`, `waybar-git`, `bemoji-git` | AUR, with no direct nixpkgs equivalent. `swww` and plain `waybar` are the likely substitutes — and waybar has to be new enough to emit `hl.dsp.focus`, see [The Lua config gotcha](#the-lua-config-gotcha) |
 | `spotify-launcher.conf` | Arch's launcher wrapper only. `apps.lua` now falls back to plain `spotify` when it is absent, so the file is inert there rather than wrong |
-| `SSH_AUTH_SOCK` in `environment.d` | NixOS's `programs.ssh.startAgent` listens on `%t/ssh-agent`, without the `.socket`, so the value needs changing there — but **keep the file**. The module exports the variable from `environment.extraInit`, which is `/etc/profile` and so reaches shells only, never the systemd user manager that this file exists to cover. `.zshrc` already accepts either name |
 
 ## Machine notes
 

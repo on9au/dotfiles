@@ -11,3 +11,21 @@
 # this only cleans up after them.
 .config/autostart/discord.desktop
 .config/autostart/steam.desktop
+
+# The two fcitx5 overrides, deleted from this repo but not from the machines
+# that already applied them. Removing a file from the source tree does NOT
+# remove the copy in $HOME -- chezmoi just stops managing it -- so both would
+# sit there as orphans, still carrying --disable=notificationitem and still
+# naming /usr/bin/fcitx5. Verified rather than assumed: source file deleted,
+# re-applied, target still present.
+#
+# On Arch that is merely stale, and quietly misleading: the path is right, so
+# the tray icon stays suppressed by the old file and the waybar ignore-list
+# that replaced it never actually gets exercised. You would think it worked.
+#
+# Anywhere else the D-Bus one is broken rather than stale -- it overrides the
+# packaged service with a binary that is not there, so the first app to ask
+# for org.fcitx.Fcitx5 activates nothing and the input method is simply gone.
+# See "Tray" in the README.
+.local/share/dbus-1/services/org.fcitx.Fcitx5.service
+.config/autostart/org.fcitx.Fcitx5.desktop
